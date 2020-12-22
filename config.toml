@@ -1,4 +1,4 @@
-baseURL = "http://localhost:1313/"
+baseURL = "https://majinghe.github.io/Cloud-Native-DevSecOps/"
 languageCode = "zh-cn"
 defaultContentLanguage = "zh-cn"                             # en / zh-cn / ... (This field determines which i18n file to use)
 title = "小马哥的博客"
