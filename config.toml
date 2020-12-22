@@ -1,7 +1,7 @@
 baseURL = "http://localhost:1313/"
 languageCode = "zh-cn"
 defaultContentLanguage = "zh-cn"                             # en / zh-cn / ... (This field determines which i18n file to use)
-title = "小马哥的博客"
+title = "小马哥的微博"
 preserveTaxonomyNames = true
 enableRobotsTXT = true
 enableEmoji = true
@@ -180,20 +180,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
 
   [params.social]                                         # 社交链接
     a-email = "devops008@sina.com"
-#    b-stack-overflow = "http://localhost:1313"
-#    c-twitter = "http://localhost:1313"
-#    d-facebook = "http://localhost:1313"
-#    e-linkedin = "http://localhost:1313"
-#    f-google = "http://localhost:1313"
     g-github = "https://github.com/majinghe"
-#    h-weibo = "http://localhost:1313"
-#    i-zhihu = "http://localhost:1313"
-#    j-douban = "http://localhost:1313"
-#    k-pocket = "http://localhost:1313"
-#    l-tumblr = "http://localhost:1313"
-#    m-instagram = "http://localhost:1313"
-#    n-gitlab = "http://localhost:1313"
-#    o-bilibili = "http://localhost:1313"
 
 # See https://gohugo.io/about/hugo-and-gdpr/
 [privacy]
