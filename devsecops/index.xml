@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Devsecops on 小马哥的微博</title>
+    <link>http://localhost:1313/devsecops/</link>
+    <description>Recent content in Devsecops on 小马哥的微博</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 19 Dec 2020 13:05:42 +0800</lastBuildDate><atom:link href="http://localhost:1313/devsecops/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>2021 年 DevOps 的八大趋势</title>
+      <link>http://localhost:1313/devsecops/devops-trend-2021/</link>
+      <pubDate>Sat, 19 Dec 2020 13:05:42 +0800</pubDate>
+      
+      <guid>http://localhost:1313/devsecops/devops-trend-2021/</guid>
+      <description>2020 年即将即将结束，也到了预测一下 DevOps 在来年的一些发展于变化。本文先看看别人的预测，最后我自己也凭借自己在 DevOps 领域这几年的经验和认知，也大胆预测一</description>
+    </item>
+    
+  </channel>
+</rss>
