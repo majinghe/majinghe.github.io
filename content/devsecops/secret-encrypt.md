@@ -212,6 +212,8 @@ $ kamus-cli -V
 
 ### 使用
 
+下面分别以`init container`和`KamusSecret`的方式来演示使用方式。
+
 #### init container
 
 首先需要加密 `secret`。kamus 加密 secret 时需要和一个 `service account` 关联起来，此 `service account` 会在后续的应用部署中使用，所以先创建一个 `service account`（本文所有 demo 均在 test ns 下）：
