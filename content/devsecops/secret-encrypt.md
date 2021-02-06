@@ -4,7 +4,7 @@ description: "处理好 Kubernetes secretes 是实现 GitOps 的关键"
 author: 马景贺（小马哥）
 categories: ["Security"]
 tags: ["cloud security","security"]
-date: 2021-2-5T13:05:42+08:00
+date: 2021-02-05T13:05:42+08:00
 type: "post"
 ---
 
