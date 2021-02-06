@@ -45,7 +45,7 @@ kubeseal version: v0.14.1
 
 此时，两部分均安装成功，下面可以使用了。
 
-### 使用方式
+### 使用
 
 选择一个包含有需要加密的 secret 的文件，内容如下：
 ```
@@ -211,3 +211,155 @@ $ kamus-cli -V
 ```
 
 ### 使用
+
+#### init container
+
+首先需要加密 `secret`。kamus 加密 secret 时需要和一个 `service account` 关联起来，此 `service account` 会在后续的应用部署中使用，所以先创建一个 `service account`（本文所有 demo 均在 test ns 下）：
+
+```
+$ kubectl -n test create sa xiaomage
+```
+
+接着使用客户端工具 `kamus-cli` 来加密 `secret`（username 的值为 xiaomge，password 的值为 passw0rd）：
+
+```
+$ kamus-cli encrypt --secret xiaomage --service-account xiaomage --namespace test --kamus-url http://localhost:9999 --allow-insecure-url
+[info  kamus-cli]: Encryption started...
+[info  kamus-cli]: service account: xiaomage
+[info  kamus-cli]: namespace: test
+[warn  kamus-cli]: Auth options were not provided, will try to encrypt without authentication to kamus
+[info  kamus-cli]: Successfully encrypted data to xiaomage service account in test namespace
+[info  kamus-cli]: Encrypted data:
+CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+```
+返回的`CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==`就是 xiaomage 经过加密后的值，用同样的方法，可以将 passw0rd 进行加密：
+```
+$ kamus-cli encrypt --secret passw0rd --service-account xiaomage --namespace test --kamus-url http://localhost:9999 --allow-insecure-url
+[info  kamus-cli]: Encryption started...
+[info  kamus-cli]: service account: xiaomage
+[info  kamus-cli]: namespace: test
+[warn  kamus-cli]: Auth options were not provided, will try to encrypt without authentication to kamus
+[info  kamus-cli]: Successfully encrypted data to xiaomage service account in test namespace
+[info  kamus-cli]: Encrypted data:
+ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+```
+然后，将加密后的值放在 `configmaap` 中：
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kamus-encrypted-secrets-cm
+  namespace: test
+data:
+  username: CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+  password: ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+```
+
+接下来，将上述 `configmap` 以 `volume` 的方式挂在到 `pod` 中，随后使用 `init container` 来解密数据，且将数据存放在一个 `config.json` 文件中：
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: test
+  name: kamus-pod
+spec:
+   serviceAccountName: xiaomage
+   automountServiceAccountToken: true
+   initContainers:
+   - name: "kamus-init"
+     image: "soluto/kamus-init-container:latest"
+     imagePullPolicy: IfNotPresent
+     env:
+     - name: KAMUS_URL
+       value: http://kamus-decryptor.kamus.svc.cluster.local/
+     volumeMounts:
+     - name: encrypted-secrets
+       mountPath: /encrypted-secrets
+     - name: decrypted-secrets
+       mountPath: /decrypted-secrets
+     args: ["-e","/encrypted-secrets","-d","/decrypted-secrets", "-n", "config.json"]
+   containers:
+   - name: kamus-test
+     image: dllhb/devopsday:v0.6
+     imagePullPolicy: IfNotPresent
+     volumeMounts:
+     - name: decrypted-secrets
+       mountPath: /secrets
+   volumes:
+   - name: encrypted-secrets
+     configMap:
+       name: kamus-encrypted-secrets-cm
+   - name: decrypted-secrets
+     emptyDir:
+       medium: Memory
+```
+
+> 需要注意的是，需要指定 `kamus` 的地址，即 `decryptor` 的地址，可根据自己的安装情况自行指定。
+
+接下来，部署 `configmap` 和 `pod` 并查看：
+```
+$ kubectl -n test apply -f configmap.yaml
+$ kubectl -n test apply -f kamus-deploy.yaml
+$ kubectl -n test get pods,cm
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/kamus-pods              1/1     Running   0          4h3m
+
+NAME                                   DATA   AGE
+configmap/kamus-encrypted-secrets-cm   2      30s
+```
+
+进入`pod` 查看解密后的数据：
+
+```
+$kubectl -n test exec -it kamus-deploy sh
+$ cat /secrets/config.json
+{
+    "password":"passw0rd",
+    "username":"username"
+}
+```
+
+可以看到 `secet` 已经被解密到了`config.json`文件中，应用程序只需要读取此文件即可获得`secret`的相关数据。
+
+### 以 KamusSecret 的方式
+
+kamus 对 Kubernetes 进行了扩展，有了自己支持的`KamusSecret` 对象，将上述加密后的数据存放在 `KamusSecret` 中：
+```
+apiVersion: "soluto.com/v1alpha2"
+kind: KamusSecret
+metadata:
+  name: kamus-test
+  namespace: test
+type: Opaque
+stringData:
+  username: CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+  password: ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+serviceAccount: xiaomage
+```
+创建 `KamusSecret` 对象：
+```
+$ kubectl -n test apply -f kamus-secrets.yaml
+```
+查看生成的`KamusSecret`和`Secret`：
+```
+$ kubectl -n test get KamusSecret,secret
+NAME                                AGE
+kamussecret.soluto.com/kamus-test   60s
+
+NAME                                TYPE                                  DATA   AGE
+secret/kamus-test                   Opaque                                2      59s
+```
+可以看到`KamusSecret`生成了一个和自己同名的`secret`，接着查看`secret`的内容：
+```
+apiVersion: v1
+data:
+  password: cGFzc3cwcmQ=
+  username: eGlhb21hZ2U=
+```
+解码后为：
+```
+password: passw0rd
+username: xiaomage
+```
+最后，可以像正常方式在`pod`中引用此`secret`。
