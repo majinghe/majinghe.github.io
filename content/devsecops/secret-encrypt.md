@@ -1,3 +1,14 @@
+---
+title: "Kubernetes secrets 加密的几种方式"
+description: "处理好 Kubernetes secretes 是实现 GitOps 的关键"
+author: 马景贺（小马哥）
+categories: ["Security"]
+tags: ["cloud security","security"]
+date: 2021-2-5T13:05:42+08:00
+type: "post"
+---
+
+
 ## Sealed Secrets
 
 Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 `SealedSecret` 对象，然后将 secret 加密变成一个 `SealedSecret` 对象，而 `SealedSecret` 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。
