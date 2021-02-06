@@ -28,4 +28,3 @@ jobs:
         with:
           github_token: ${{ secrets.MY_PERSONAL_TOKEN }}
           publish_dir: ./public
-          cname: xiaomage-devops.com
