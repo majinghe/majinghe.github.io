@@ -17,16 +17,16 @@ Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kubern
 
 Sealed Secrets 有两部分组成：
 
-* 安装与集群侧的 controller/operator
+* 安装与集群侧的 `controller/operator`
 * 客户端工具：`kubeseal`
 
-所以安装也分两部分走，安装`controller`和`kubeseal`。安装的方法在[这儿](https://github.com/bitnami-labs/sealed-secrets/releases)可以找到，可以先安装`controller`，执行如下命令即可：
+所以安装也分两步，安装`controller`和`kubeseal`。安装的方法在[这儿](https://github.com/bitnami-labs/sealed-secrets/releases)可以找到，可以先安装`controller`，执行如下命令即可：
 
 ```
 $ $ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.14.1/controller.yaml
 ```
 
-随后查看`kube-system` ns 下面的 controller pod
+随后查看`kube-system` ns 下面的`controller` pod
 ```
 $ kubectl -n kube-system get pods | grep seal
 sealed-secrets-controller-64b74f67b-4wtj7   1/1     Running   0          153m
@@ -93,17 +93,20 @@ $ kubeseal < test-secret.yaml > test-seal-secret.yaml
 }
 ```
 
-可以看到内容已经得到了加密，接下来就需要创建 SealedSecret 了：
+可以看到内容已经得到了加密，接下来就需要创建 `SealedSecret` 了：
 ```
 $ kubectl -n test apply -f test-seal-secret.yaml
 ```
 
-接着查看 SealedSecret 和 secret：
+接着查看`SealedSecret` 和 `secret`：
 
 ```
 $ kubectl -n test get SealedSecret,secret
 sealedsecret.bitnami.com/seal-test-secret   4s
 secret/seal-test-secret      Opaque                                3      3s
+```
+在如下的 `Deployment` 中以环境变量的形式引用上述生成的 `secret`：
+
 ```
 apiVersion: apps/v1
 kind: Deployment
@@ -141,7 +144,7 @@ $ kubectl -n test apply -f test-deploy.yaml
 deployment.apps/devops created
 ```
 
-查看 pod 状态，并查看环境变量（secret 是以环境变量的形式注入 pod 内的）
+查看 pod 状态，并查看环境变量（`secret` 是以环境变量的形式注入 pod 内的）
 ```
 $ kubectl -n test get pods
 devops-b48df6659-gmjtr    1/1     Running   0          21s
@@ -151,9 +154,9 @@ username=asdf
 token=1e4dgr5fgrh3rffgrhtonnhrhr
 password=passw0rd
 ```
-说明 secret 注入成功。最后就可以包含 secret 信息且经过加密的文件 test-seal-secret.yaml 推送至版本管理系统，比如 GitHub。
+说明 `secret` 注入成功。最后就可以包含 `secret` 信息且经过加密的文件 test-seal-secret.yaml 推送至版本管理系统，比如 GitHub。
 
-其他的 secret 类型，比如 tls、dockerconfigjson 等都可以用上面的方式进行使用。
+其他的 `secret` 类型，比如 tls、dockerconfigjson 等都可以用上面的方式进行使用。
 
 ## Helm Secrets
 
