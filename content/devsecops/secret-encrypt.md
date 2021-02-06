@@ -172,13 +172,23 @@ Helm Secrets 是 Helm 的一个插件，用来对于Helm Chart 中的敏感信�
 
 ## Kamus
 
+Kamus 是一款开源的采用零信任的 secret 加解密方式为 Kubernetes 应用程序安全处理 secrets 的工具。Kamus 提供两种方式来对 Kubernetes secrets 进行加密，即
+
+* **使用 `init container`**：将 secrets 加密后存储为 Kubernetes configmap，然后在应用程序的部署中添加一个 `init container`，通过 `init container` 将 `configmap` 中的加密数据解密至指定文件，应用程序再从此文件读取解密了的 `secret` 信息。
+* **使用 `KamusSecret`**：创建一个 `KamusSecret` 对象（充分利用了 Kubernetes 的扩展机制），此对象包含了加密之后的数据，在此对象创建的过程中，会创建一个同名的 `secret` 对象，`secret` 中的数据是经过 base64 编码之后的数据，可以被 Kubernetes 其他对象引用。
+
+下面会分别讲述这两种方法的具体使用。首先需要完成 `kamus` 的安装。
+
 ### 安装
 
+`kamus` 的安装包括 `controller` 和 客户端工具 `kamus-cli`。
+
+#### 安装 `controller`
 ```
 $ helm repo add soluto https://charts.soluto.io
 $ helm install kamus --namespace kamus soluto/kamus
 ```
-### 检查 pod 状态
+#### 检查 pod 状态
 ```
 $ kubectl -n kamus get pods
 NAME                                READY   STATUS    RESTARTS   AGE
@@ -189,7 +199,7 @@ kamus-encryptor-f75dd457-fwp8r      1/1     Running   0          9m28s
 kamus-encryptor-f75dd457-p9rnx      1/1     Running   0          9m29s
 ```
 
-### 安装客户端
+####  安装客户端
 ```
 $ npm install -g @soluto-asurion/kamus-cli
 ```
@@ -200,3 +210,4 @@ $ kamus-cli -V
 0.3.0
 ```
 
+### 使用
