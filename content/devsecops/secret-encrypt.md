@@ -169,6 +169,95 @@ Helm Secrets 是 Helm 的一个插件，用来对于Helm Chart 中的敏感信�
 * helm
 * sops
 
+关于 Helm 的介绍与使用可以查看[这篇公众号文章](https://mp.weixin.qq.com/s?__biz=Mzg3NjIzODc5NA==&mid=2247483702&idx=1&sn=aba5c37d0570dfaf74053ff55ab8155a&chksm=cf340393f8438a8558b627d466951b252990656d60826c91f8c10c8aa44e4cd329ebdc2f69d8&mpshare=1&scene=1&srcid=0206qXfqgb0wJITJVqxgqJ7Z&sharer_sharetime=1612610316961&sharer_shareid=69a671b032908bc53da173d06860fd16&exportkey=ATUCeld2T%2Bto3xSroQqGeNA%3D&pass_ticket=iUA3ldsRFzyThNhlk2ZEzJC9YRhNhoY8aCOqi5pTahkuTRrc5uTQqf4n1zganuN1&wx_header=0#rd)。下面我们简单介绍一下 sops。
+
+#### sops
+
+`sops`是一个加密文件的编辑器，支持 YAML、JSON、ENV、INI 和二进制格式，并使用 AWS KMS、GCP KMS、Azure Key Vault 和PGP 进行加密。本文将使用 PGP 来进行加密。
+
+PGP（Pretty Good Privacy）是一种常用的加密方式。在 1990s（1991 年）由 Phil Zimmermann 所开发，现在归属于 Symantec 公司，它是商业软件，需要付费才能使用。而 GPG（GNU Privacy Guard）是一种基于 Open PGP 标准的加密方式。它是开源且免费的。所以本文的演示将使用 GPG 的方式。
+
+由于`sops`采用非对称加密，所以需要先生成一对`key`。使用`gpg --full-generate-key`并输入必要的参数即可生成`key`，如下：
+```
+$ gpg --full-generate-key
+gpg (GnuPG) 2.2.12; Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+Your selection? 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (3072) 4096
+Requested keysize is 4096 bits
+Please specify how long the key should be valid.
+         0 = key does not expire
+      <n>  = key expires in n days
+      <n>w = key expires in n weeks
+      <n>m = key expires in n months
+      <n>y = key expires in n years
+Key is valid for? (0) 1y
+Key expires at Sat Jan  8 12:12:10 2022 UTC
+Is this correct? (y/N) y
+
+GnuPG needs to construct a user ID to identify your key.
+
+Real name: xiaomage
+Email address: devops@xiaomage.com
+Comment: gpg key generation
+You selected this USER-ID:
+    "xiaomage (gpg key generation) <devops@xiaomage.com>"
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+gpg: key 8BA2C5716B5C007F marked as ultimately trusted
+
+gpg: revocation certificate stored as '/root/.gnupg/openpgp-revocs.d/BCEB5797691E6C95E33A465D8BA2C5716B5C007F.rev'
+public and secret key created and signed.
+
+pub   rsa4096 2021-01-08 [SC] [expires: 2022-01-08]
+      BCEB5797691E6C95E33A465D8BA2C5716B5C007F
+uid                      xiaomage (gpg key generation) <devops@xiaomage.com>
+sub   rsa4096 2021-01-08 [E] [expires: 2022-01-08]
+```
+可以查看生成的`private key`和`public key`：
+
+* private key 查看
+```
+gpg -K(gpg --list-secret-keys)
+
+/root/.gnupg/pubring.kbx
+------------------------
+sec   rsa4096 2021-01-08 [SC] [expires: 2022-01-08]
+      BCEB5797691E6C95E33A465D8BA2C5716B5C007F
+uid           [ultimate] xiaomage (gpg key generation) <devops@xiaomage.com>
+ssb   rsa4096 2021-01-08 [E] [expires: 2022-01-08]
+```
+* public key 查看
+
+```
+gpg -k(gpg --list-keys)
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u
+gpg: next trustdb check due at 2022-01-08
+/root/.gnupg/pubring.kbx
+------------------------
+pub   rsa4096 2021-01-08 [SC] [expires: 2022-01-08]
+      BCEB5797691E6C95E33A465D8BA2C5716B5C007F
+uid           [ultimate] xiaomage (gpg key generation) <devops@xiaomage.com>
+sub   rsa4096 2021-01-08 [E] [expires: 2022-01-08]
+```
 
 ## Kamus
 
@@ -366,3 +455,14 @@ password: passw0rd
 username: xiaomage
 ```
 最后，可以像正常方式在`pod`中引用此`secret`。
+
+
+
+
+
+### 参考
+1. https://github.com/Soluto/kamus
+2. https://kamus.soluto.io/
+3. https://blog.solutotlv.com/can-kubernetes-keep-a-secret/
+4. https://en.sokube.ch/post/lightweight-kubernetes-gitops-secrets
+5. https://github.com/mozilla/sops#showing-diffs-in-cleartext-in-git
