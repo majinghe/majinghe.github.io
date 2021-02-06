@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Kubernetes secrets 加密的几种方式 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Kubernetes secrets 加密的几种方式"><meta property="og:description" content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/"><meta itemprop=name content="Kubernetes secrets 加密的几种方式"><meta itemprop=description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta itemprop=wordCount content="1352"><meta itemprop=keywords content="cloud security,security,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes secrets 加密的几种方式"><meta name=twitter:description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Kubernetes secrets 加密的几种方式</h1><div class=post-meta><span class=post-time>0001-01-01</span><div class=post-category><a href=/Cloud-Native-DevSecOps/categories/security/>Security</a></div></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#sealed-secrets>Sealed Secrets</a><ul><li><a href=#安装>安装</a></li><li><a href=#使用方式>使用方式</a></li></ul></li><li><a href=#helm-secrets>Helm Secrets</a><ul><li><a href=#安装-1>安装</a></li></ul></li><li><a href=#kamus>Kamus</a><ul><li><a href=#安装-2>安装</a></li><li><a href=#使用>使用</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=sealed-secrets>Sealed Secrets</h2><p>Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 <code>SealedSecret</code> 对象，然后将 secret 加密变成一个 <code>SealedSecret</code> 对象，而 <code>SealedSecret</code> 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。</p><h3 id=安装>安装</h3><p>Sealed Secrets 有两部分组成：</p><ul><li>安装与集群侧的 <code>controller/operator</code></li><li>客户端工具：<code>kubeseal</code></li></ul><p>所以安装也分两步，安装<code>controller</code>和<code>kubeseal</code>。安装的方法在<a href=https://github.com/bitnami-labs/sealed-secrets/releases>这儿</a>可以找到，可以先安装<code>controller</code>，执行如下命令即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Kubernetes secrets 加密的几种方式 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Kubernetes secrets 加密的几种方式"><meta property="og:description" content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/"><meta itemprop=name content="Kubernetes secrets 加密的几种方式"><meta itemprop=description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><meta itemprop=wordCount content="2310"><meta itemprop=keywords content="cloud security,security,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes secrets 加密的几种方式"><meta name=twitter:description content="处理好 Kubernetes secretes 是实现 GitOps 的关键"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Kubernetes secrets 加密的几种方式</h1><div class=post-meta><span class=post-time>0001-01-01</span><div class=post-category><a href=/Cloud-Native-DevSecOps/categories/security/>Security</a></div></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#sealed-secrets>Sealed Secrets</a><ul><li><a href=#安装>安装</a></li><li><a href=#使用>使用</a></li></ul></li><li><a href=#helm-secrets>Helm Secrets</a><ul><li><a href=#安装-1>安装</a></li></ul></li><li><a href=#kamus>Kamus</a><ul><li><a href=#安装-2>安装</a></li><li><a href=#使用-1>使用</a></li><li><a href=#以-kamussecret-的方式>以 KamusSecret 的方式</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=sealed-secrets>Sealed Secrets</h2><p>Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 <code>SealedSecret</code> 对象，然后将 secret 加密变成一个 <code>SealedSecret</code> 对象，而 <code>SealedSecret</code> 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。</p><h3 id=安装>安装</h3><p>Sealed Secrets 有两部分组成：</p><ul><li>安装与集群侧的 <code>controller/operator</code></li><li>客户端工具：<code>kubeseal</code></li></ul><p>所以安装也分两步，安装<code>controller</code>和<code>kubeseal</code>。安装的方法在<a href=https://github.com/bitnami-labs/sealed-secrets/releases>这儿</a>可以找到，可以先安装<code>controller</code>，执行如下命令即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ $ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.14.1/controller.yaml
 </code></pre></td></tr></table></div></div><p>随后查看<code>kube-system</code> ns 下面的<code>controller</code> pod</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
@@ -10,7 +10,7 @@ sealed-secrets-controller-64b74f67b-4wtj7   1/1     Running   0          153m
 </span><span class=lnt>2
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubeseal --version
 kubeseal version: v0.14.1
-</code></pre></td></tr></table></div></div><p>此时，两部分均安装成功，下面可以使用了。</p><h3 id=使用方式>使用方式</h3><p>选择一个包含有需要加密的 secret 的文件，内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><p>此时，两部分均安装成功，下面可以使用了。</p><h3 id=使用>使用</h3><p>选择一个包含有需要加密的 secret 的文件，内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -186,7 +186,201 @@ kamus-encryptor-f75dd457-p9rnx      1/1     Running   0          9m29s
 </span><span class=lnt>2
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kamus-cli -V
 0.3.0
-</code></pre></td></tr></table></div></div><h3 id=使用>使用</h3></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+</code></pre></td></tr></table></div></div><h3 id=使用-1>使用</h3><h4 id=init-container>init container</h4><p>首先需要加密 <code>secret</code>。kamus 加密 secret 时需要和一个 <code>service account</code> 关联起来，此 <code>service account</code> 会在后续的应用部署中使用，所以先创建一个 <code>service account</code>（本文所有 demo 均在 test ns 下）：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test create sa xiaomage
+</code></pre></td></tr></table></div></div><p>接着使用客户端工具 <code>kamus-cli</code> 来加密 <code>secret</code>（username 的值为 xiaomge，password 的值为 passw0rd）：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kamus-cli encrypt --secret xiaomage --service-account xiaomage --namespace test --kamus-url http://localhost:9999 --allow-insecure-url
+[info  kamus-cli]: Encryption started...
+[info  kamus-cli]: service account: xiaomage
+[info  kamus-cli]: namespace: test
+[warn  kamus-cli]: Auth options were not provided, will try to encrypt without authentication to kamus
+[info  kamus-cli]: Successfully encrypted data to xiaomage service account in test namespace
+[info  kamus-cli]: Encrypted data:
+CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+</code></pre></td></tr></table></div></div><p>返回的<code>CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==</code>就是 xiaomage 经过加密后的值，用同样的方法，可以将 passw0rd 进行加密：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kamus-cli encrypt --secret passw0rd --service-account xiaomage --namespace test --kamus-url http://localhost:9999 --allow-insecure-url
+[info  kamus-cli]: Encryption started...
+[info  kamus-cli]: service account: xiaomage
+[info  kamus-cli]: namespace: test
+[warn  kamus-cli]: Auth options were not provided, will try to encrypt without authentication to kamus
+[info  kamus-cli]: Successfully encrypted data to xiaomage service account in test namespace
+[info  kamus-cli]: Encrypted data:
+ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+</code></pre></td></tr></table></div></div><p>然后，将加密后的值放在 <code>configmaap</code> 中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kamus-encrypted-secrets-cm
+  namespace: test
+data:
+  username: CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+  password: ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+</code></pre></td></tr></table></div></div><p>接下来，将上述 <code>configmap</code> 以 <code>volume</code> 的方式挂在到 <code>pod</code> 中，随后使用 <code>init container</code> 来解密数据，且将数据存放在一个 <code>config.json</code> 文件中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: v1
+kind: Pod
+metadata:
+  namespace: test
+  name: kamus-pod
+spec:
+   serviceAccountName: xiaomage
+   automountServiceAccountToken: true
+   initContainers:
+   - name: &#34;kamus-init&#34;
+     image: &#34;soluto/kamus-init-container:latest&#34;
+     imagePullPolicy: IfNotPresent
+     env:
+     - name: KAMUS_URL
+       value: http://kamus-decryptor.kamus.svc.cluster.local/
+     volumeMounts:
+     - name: encrypted-secrets
+       mountPath: /encrypted-secrets
+     - name: decrypted-secrets
+       mountPath: /decrypted-secrets
+     args: [&#34;-e&#34;,&#34;/encrypted-secrets&#34;,&#34;-d&#34;,&#34;/decrypted-secrets&#34;, &#34;-n&#34;, &#34;config.json&#34;]
+   containers:
+   - name: kamus-test
+     image: dllhb/devopsday:v0.6
+     imagePullPolicy: IfNotPresent
+     volumeMounts:
+     - name: decrypted-secrets
+       mountPath: /secrets
+   volumes:
+   - name: encrypted-secrets
+     configMap:
+       name: kamus-encrypted-secrets-cm
+   - name: decrypted-secrets
+     emptyDir:
+       medium: Memory
+</code></pre></td></tr></table></div></div><blockquote><p>需要注意的是，需要指定 <code>kamus</code> 的地址，即 <code>decryptor</code> 的地址，可根据自己的安装情况自行指定。</p></blockquote><p>接下来，部署 <code>configmap</code> 和 <code>pod</code> 并查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test apply -f configmap.yaml
+$ kubectl -n test apply -f kamus-deploy.yaml
+$ kubectl -n test get pods,cm
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/kamus-pods              1/1     Running   0          4h3m
+
+NAME                                   DATA   AGE
+configmap/kamus-encrypted-secrets-cm   2      30s
+</code></pre></td></tr></table></div></div><p>进入<code>pod</code> 查看解密后的数据：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$kubectl -n test exec -it kamus-deploy sh
+$ cat /secrets/config.json
+{
+    &#34;password&#34;:&#34;passw0rd&#34;,
+    &#34;username&#34;:&#34;username&#34;
+}
+</code></pre></td></tr></table></div></div><p>可以看到 <code>secet</code> 已经被解密到了<code>config.json</code>文件中，应用程序只需要读取此文件即可获得<code>secret</code>的相关数据。</p><h3 id=以-kamussecret-的方式>以 KamusSecret 的方式</h3><p>kamus 对 Kubernetes 进行了扩展，有了自己支持的<code>KamusSecret</code> 对象，将上述加密后的数据存放在 <code>KamusSecret</code> 中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: &#34;soluto.com/v1alpha2&#34;
+kind: KamusSecret
+metadata:
+  name: kamus-test
+  namespace: test
+type: Opaque
+stringData:
+  username: CxujUBK4jgdjt+wP5mXyDA==:+CoXRDJVtW3EZ2FpterVTA==
+  password: ChmNEPM8Nj7Huh1YwO5xOA==:r9MHhEyTIEaQ4hw837lA9w==
+serviceAccount: xiaomage
+</code></pre></td></tr></table></div></div><p>创建 <code>KamusSecret</code> 对象：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test apply -f kamus-secrets.yaml
+</code></pre></td></tr></table></div></div><p>查看生成的<code>KamusSecret</code>和<code>Secret</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test get KamusSecret,secret
+NAME                                AGE
+kamussecret.soluto.com/kamus-test   60s
+
+NAME                                TYPE                                  DATA   AGE
+secret/kamus-test                   Opaque                                2      59s
+</code></pre></td></tr></table></div></div><p>可以看到<code>KamusSecret</code>生成了一个和自己同名的<code>secret</code>，接着查看<code>secret</code>的内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: v1
+data:
+  password: cGFzc3cwcmQ=
+  username: eGlhb21hZ2U=
+</code></pre></td></tr></table></div></div><p>解码后为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>password: passw0rd
+username: xiaomage
+</code></pre></td></tr></table></div></div><p>最后，可以像正常方式在<code>pod</code>中引用此<code>secret</code>。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
 <span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
 <span class=item-content>0001-01-01</span></p></div><footer class=post-footer><div class=post-tags><a href=/Cloud-Native-DevSecOps/tags/cloud-security/>cloud security</a>
 <a href=/Cloud-Native-DevSecOps/tags/security/>security</a></div><nav class=post-nav><a class=prev href=/Cloud-Native-DevSecOps/devsecops/devops-trend-2021/><i class="iconfont icon-left"></i><span class="prev-text nav-default">2021 年 DevOps 的八大趋势</span>
