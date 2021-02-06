@@ -205,6 +205,7 @@ $ npm install -g @soluto-asurion/kamus-cli
 ```
 
 检查安装是否成功
+
 ```
 $ kamus-cli -V
 0.3.0
