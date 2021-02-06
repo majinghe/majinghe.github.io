@@ -214,7 +214,7 @@ $ kamus-cli -V
 
 下面分别以`init container`和`KamusSecret`的方式来演示使用方式。
 
-#### init container
+#### 以`init container`的方式
 
 首先需要加密 `secret`。kamus 加密 secret 时需要和一个 `service account` 关联起来，此 `service account` 会在后续的应用部署中使用，所以先创建一个 `service account`（本文所有 demo 均在 test ns 下）：
 
@@ -324,7 +324,7 @@ $ cat /secrets/config.json
 
 可以看到 `secet` 已经被解密到了`config.json`文件中，应用程序只需要读取此文件即可获得`secret`的相关数据。
 
-### 以 KamusSecret 的方式
+#### 以`KamusSecret`的方式
 
 kamus 对 Kubernetes 进行了扩展，有了自己支持的`KamusSecret` 对象，将上述加密后的数据存放在 `KamusSecret` 中：
 ```
