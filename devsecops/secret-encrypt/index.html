@@ -1,0 +1,199 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>- 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="olOwOlo"><meta name=description content="Sealed Secrets Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 SealedSecret 对象，然后将 secret 加密变成一个 SealedSecret 对象，而 SealedSecret 只能够被运行于目标集群上的 controller 解密"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content><meta property="og:description" content="Sealed Secrets Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 SealedSecret 对象，然后将 secret 加密变成一个 SealedSecret 对象，而 SealedSecret 只能够被运行于目标集群上的 controller 解密"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/secret-encrypt/"><meta itemprop=name content><meta itemprop=description content="Sealed Secrets Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 SealedSecret 对象，然后将 secret 加密变成一个 SealedSecret 对象，而 SealedSecret 只能够被运行于目标集群上的 controller 解密"><meta itemprop=wordCount content="981"><meta itemprop=keywords content><meta name=twitter:card content="summary"><meta name=twitter:title content><meta name=twitter:description content="Sealed Secrets Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 SealedSecret 对象，然后将 secret 加密变成一个 SealedSecret 对象，而 SealedSecret 只能够被运行于目标集群上的 controller 解密"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><div class=post-content><h2 id=sealed-secrets>Sealed Secrets</h2><p>Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 <code>SealedSecret</code> 对象，然后将 secret 加密变成一个 <code>SealedSecret</code> 对象，而 <code>SealedSecret</code> 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。</p><h3 id=安装>安装</h3><p>Sealed Secrets 有两部分组成：</p><ul><li>安装与集群侧的 controller/operator</li><li>客户端工具：<code>kubeseal</code></li></ul><p>所以安装也分两部分走，安装<code>controller</code>和<code>kubeseal</code>。安装的方法在<a href=https://github.com/bitnami-labs/sealed-secrets/releases>这儿</a>可以找到，可以先安装<code>controller</code>，执行如下命令即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ $ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.14.1/controller.yaml
+</code></pre></td></tr></table></div></div><p>随后查看<code>kube-system</code> ns 下面的 controller pod</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n kube-system get pods | grep seal
+sealed-secrets-controller-64b74f67b-4wtj7   1/1     Running   0          153m
+</code></pre></td></tr></table></div></div><p>接着安装客户端工具 <code>kubeseal</code>。这个可以根据自己的 OS 来选用不同的安装方式，以 MacOs 为例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ brew install kubeseal
+</code></pre></td></tr></table></div></div><p>通过查看 <code>kubeseal</code> 的版本来确定是否安装成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubeseal --version
+kubeseal version: v0.14.1
+</code></pre></td></tr></table></div></div><p>此时，两部分均安装成功，下面可以使用了。</p><h3 id=使用方式>使用方式</h3><p>选择一个包含有需要加密的 secret 的文件，内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: v1
+data:
+  username: YXNkZg==
+  password: cGFzc3cwcmQ=
+  token: MWU0ZGdyNWZncmgzcmZmZ3JodG9ubmhyaHI=
+kind: Secret
+metadata:
+  name: seal-test-secret
+  namespace: test
+type: Opaque
+</code></pre></td></tr></table></div></div><p>将上述内容写入一个 yaml 文件，比如 test-secret.yaml，然后执行如下命令加密：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubeseal &lt; test-secret.yaml &gt; test-seal-secret.yaml
+</code></pre></td></tr></table></div></div><p>可以查看 test-seal-secret.yaml 文件的内容</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+  &#34;kind&#34;: &#34;SealedSecret&#34;,
+  &#34;apiVersion&#34;: &#34;bitnami.com/v1alpha1&#34;,
+  &#34;metadata&#34;: {
+    &#34;name&#34;: &#34;seal-test-secret&#34;,
+    &#34;namespace&#34;: &#34;test&#34;,
+    &#34;creationTimestamp&#34;: null
+  },
+  &#34;spec&#34;: {
+    &#34;template&#34;: {
+      &#34;metadata&#34;: {
+        &#34;name&#34;: &#34;seal-test-secret&#34;,
+        &#34;namespace&#34;: &#34;test&#34;,
+        &#34;creationTimestamp&#34;: null
+      },
+      &#34;type&#34;: &#34;Opaque&#34;
+    },
+    &#34;encryptedData&#34;: {
+      &#34;password&#34;: &#34;AgCHLFSlGFpX2B9QDhWbMTfT83aopXMisR5XnUPZNcbvvnQzqgyG8fBVknT8LCNF5ExtUCCcNLsvWRrZY+9BJqf5dlBl6DkLV1acuPicP0vuGaUQwmc5BY/5Bj53Oj9uMYLNdVHoQ3E6kQgeJPa5v4rvwRXsB0EneYPcT88KyMg+tn4OY9JH+hpg2XMXZudyyZsocE852J5nfN4P7WZQYaG2eIBqRSQvQXUflQQvZ5wBCkTvmaZYfxz+Lxuf3wDWdSlPjcgSVnn5tWNP7u0ErdVy8LwTL5HzJdcoSviDysTq3VVA8W9Nmn0CM3QS0R0Nbi3JfalUdxfBMK+yb7t6Z72oJyoxGfCa07iKnkM37SSw4vl1nXiYy3FMWuzDtWLVk6XzjBZR2ChoeClqbGDg8KeSWZg/rO3Xku98vCmCa004OetJKBMc9Db3q+gX53ThdU70VvRol9rLPFBPHB8NTjD+Bu0Ss4XzIzZzi8J+Ov5xE7G8LnPLSZtZQyD/qGZK4n7pU1YNLROJ+fz1W5edPdpb5szUOqs1bpFfGleUiPZo1sGA0f1EsDvJShptgtT44YzGRkkgrP1LGp2AVIpnt9meE5WNCoSEPZJVx7wWMV9CHMOyyUi8zi+oG/S2NkI3rc2sC8AFp0DqP9m/HaX1GG+6vw9oHAbhxpR4v3mDyBIq+/8UEMtkybIEDQGHqyQ5CfRow+A80cA4Hw==&#34;,
+      &#34;token&#34;: &#34;AgBRi4NZunaJtHyP5aAoWmGtEXBipbFIb/n4ep8wdg+eka5xbDeLZwNCLofbUL+u0pP/CHSJeWl62mVPJhZdOKE+Su0b8a78im0+xsochaMQf0AI1GGL/Fo08HI8paP8k404gwAtonocIFSis3YooU0nyVD+lYH+k09FGABI+RmVLc2XkuIr96TTL4xsdSM5L0Ks2SFQKcQ42JfFWtNdXz6lr/IODsZop0/xAk6ffbsGGmCUjwusUU3Wp0MR25ntYT8ySuO6W7xkfGozEFzztteBJs28SHLf5HUi6BbYVnsZibrFF3BZP5aNnBg2TIgo3+dbX6EPHM904By3Z9XTBxsQfH6p1VoyUf0EGKZnUnJFezFtN9m2tyKbV/Z/5vCh9kVp6Yn/BE/AwGAH7kqqjPtHTnZiq+Xy1UwV4/eHkxGAvSAR3Z6wTQCt/rwqGrQi2eGpIcyjxTwlPYaVjfx3L+1tnBR966lGLnhwX0I6b6whXAm3hRb1AhYFnuyF/CoG/PEmQsMU5GfkroQkb5LL+UeCYKbjvMvgCe2hFxfh3dcGJ9E3dad9W0rSKrPd5t/dR1kDtItHau36+G9PSVyqRD1yt0MS2vLLUQu7t2RhiIPrl20fkbnum9JAfmLlgliHIiQPHASL32CXB6EzsgqRX6w8TmWNOSvlR7LU8JZtd4Gmiw9wGBh7JEGodkaH6lc5ndQluykC18RUXtuLft+S4dnQCApHX6FoIGZjug==&#34;,
+      &#34;username&#34;: &#34;AgCgBQc/fhGqB0YBGfXzhybC6YXJeLkOZyi7Z7Y+HjfnYSg4Q/Zh8Kn7UEbq9CwEl+CtagARjKmLfhIcAqFWS8+h8j4A2xNq7gzLnv+eCo0vFDPTddDVvdb6ixmRvF5rzD1gZ2vxWzlWVqk7x0wt8wCE90S0yu40j+JOaqH35Ir3kb4NgTMXk6Yqlidw06r3P2cqbZ0jBleOFf5eRfiu0ZquU5PJ/J7t9Pecx9S8mlitTtFPlvpVprNPB+XPSz2uwcwNW9i5OBUgR3PXsOjILLog8SiWYyk7bHaWnJtZ+JVEi9isy4EiwyrDY5kHRK2kB9Nnf6a9zz2krP7W+w9a3qXJkv8GP9D2+FN9Pj+2WP4r0hz7JL0i5q9bcc5HgBKP946u87z2lEjv2ioUAghaG/zwol3q+tKv0i6pPe0guGRCdpMlXa1Z1deOBJvxJXanTrIwi7dVc/bCsRGMRyYwD6hWhe1JjxgBjc/YbbBj8JJVdHrc2tGYFBU9qG2Kv3cAZMRrMXvKUkTK8JiMVzN0/DHEtdNv1PW4U3hlAqt5b62WahyzdHNVqHycwe+Ogz0BfTdohlxftv5qQYx0SEynXaIY+WltRnCnYrY1Kg1/DmsWYCGy++TO+6cEEwISPe/FM1peidsXVf5S3DCUQWE6aMK/6XDzukZoTjor/8JPkHc56Pk1Paty0yrP+YdL5R5m3IERzHoD&#34;
+    }
+  }
+}
+</code></pre></td></tr></table></div></div><p>可以看到内容已经得到了加密，接下来就需要创建 SealedSecret 了：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test apply -f test-seal-secret.yaml
+</code></pre></td></tr></table></div></div><p>接着查看 SealedSecret 和 secret：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n test get SealedSecret,secret
+sealedsecret.bitnami.com/seal-test-secret   4s
+secret/seal-test-secret      Opaque                                3      3s
+</code></pre></td></tr></table></div></div><p>apiVersion: apps/v1
+kind: Deployment
+metadata:
+labels:
+app: devops
+name: devops
+spec:
+replicas: 1
+selector:
+matchLabels:
+app: devops
+template:
+metadata:
+labels:
+app: devops
+spec:
+restartPolicy: Always
+containers:
+- name: devops
+image: dllhb/devopsday:v0.6
+imagePullPolicy: Always
+envFrom:
+- secretRef:
+name: test-secret
+ports:
+- containerPort: 9999
+name: http
+protocol: TCP</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+使用下面命令部署：
+</code></pre></td></tr></table></div></div><p>$ kubectl -n test apply -f test-deploy.yaml
+deployment.apps/devops created</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+查看 pod 状态，并查看环境变量（secret 是以环境变量的形式注入 pod 内的）
+</code></pre></td></tr></table></div></div><p>$ kubectl -n test get pods
+devops-b48df6659-gmjtr 1/1 Running 0 21s
+$ kubectl -n test exec -it devops-b48df6659-gmjtr sh
+env | grep -E &ldquo;username|password|token&rdquo;
+username=asdf
+token=1e4dgr5fgrh3rffgrhtonnhrhr
+password=passw0rd</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>说明 secret 注入成功。最后就可以包含 secret 信息且经过加密的文件 test-seal-secret.yaml 推送至版本管理系统，比如 GitHub。
+
+其他的 secret 类型，比如 tls、dockerconfigjson 等都可以用上面的方式进行使用。
+
+## Helm Secrets
+
+Helm Secrets 是 Helm 的一个插件，用来对于Helm Chart 中的敏感信息进行加密。
+
+### 安装
+
+前提条件：
+
+* helm
+* sops
+
+
+## Kamus
+
+### 安装
+
+</code></pre></td></tr></table></div></div><p>$ helm repo add soluto <a href=https://charts.soluto.io>https://charts.soluto.io</a>
+$ helm install kamus &ndash;namespace kamus soluto/kamus</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>### 检查 pod 状态
+</code></pre></td></tr></table></div></div><p>$ kubectl -n kamus get pods
+NAME READY STATUS RESTARTS AGE
+kamus-controller-55d959895d-hdklf 1/1 Running 0 9m30s
+kamus-decryptor-5974b6ff47-5pkbr 1/1 Running 0 7m34s
+kamus-decryptor-5974b6ff47-c4jt4 1/1 Running 0 7m34s
+kamus-encryptor-f75dd457-fwp8r 1/1 Running 0 9m28s
+kamus-encryptor-f75dd457-p9rnx 1/1 Running 0 9m29s</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+### 安装客户端
+</code></pre></td></tr></table></div></div><p>$ npm install -g @soluto-asurion/kamus-cli</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+检查安装是否成功
+</code></pre></td></tr></table></div></div><p>$ kamus-cli -V
+0.3.0</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+</code></pre></td></tr></table></div></div></div></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/Cloud-Native-DevSecOps/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2021<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/Cloud-Native-DevSecOps/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script></body></html>
