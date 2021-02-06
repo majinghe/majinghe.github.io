@@ -259,6 +259,60 @@ uid           [ultimate] xiaomage (gpg key generation) <devops@xiaomage.com>
 sub   rsa4096 2021-01-08 [E] [expires: 2022-01-08]
 ```
 
+再用 sops 来加密数据之前，先创建一个`.sops.yaml`文件，写一个加密的规则，比如只加密`key`是`username`和`password`的敏感信息，而且需要指定 gpg 的 fingerprint。
+```
+cat << EOF > .sops.yaml
+creation_rules:
+  - encrypted_regex: '^(username|password)$'
+    pgp: 'B1C77B2CCF5575FAF0DA6B882CA51446C98C9D85'
+```
+
+接着，将下面的敏感信息写入一个yaml文件
+```
+cat << EOF > secrets.yaml
+username: xiaomage
+password: passw0rd
+EOF
+```
+现在就可以用 sops 来加密数据了：
+```
+$ sops -e secrets.yaml
+username: ENC[AES256_GCM,data:s6pInMY3eGM=,iv:5Q7JsntVoKjseD3ApWcgmYeedmGXj2A1/PyGCNFHGdE=,tag:vInq3NBLxvVWXsoVUD46Rw==,type:str]
+password: ENC[AES256_GCM,data:Ua7de2w6Jgw=,iv:qYIjTW1D0dh20NA8FGu4XEGI16kvYGAWIk4iu3r/Gdg=,tag:b33tpsP1vCgqlpyCEDP88Q==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    lastmodified: '2021-02-06T12:08:57Z'
+    mac: ENC[AES256_GCM,data:QHHDRSO2PyJt0/OA67ex0R39gEjWEnwg0MSnBac8QtLNh3ncY+9D8IZw/WqVnbcaiPta2Pem96yJZTZP4pum9ZX446iRKldsAXNqS4+tmlfowpMWI+1DgOa1QCkhSDH9U/2URA1dzyn3cZLPFzb5Ai6YUEQ93sRjlPI+kHXl16c=,iv:jhFM/uJSeChikUv777qgYVDFCHQhQeXlUSjiHx5X8Ow=,tag:6QTo5CsXQoqr0fK1B947ug==,type:str]
+    pgp:
+    -   created_at: '2021-02-06T12:08:51Z'
+        enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA/AYjF0OZ4PLAQ/+LRc5vgpRhOez8q9up8t+3OVM5QdnMwSYiuwLvjfInqqk
+            K19jUfUhwXDGGtSMlTotYlTWqWCiSm7sYeqFB0/Lx9lCZY5BhCrVnK7u7m8azpWU
+            osCQNmJehflqqnBmn82nblOGnDjM/FYkcnz4+NHUPNyYV5tWjzw9s8i/WhDeuNrf
+            IPnGKRCGJunWlHDP3yWMo7bnCNU/TmuRiSpf7lQLsp/U71M5t1X8RajatO7DPecq
+            caq3VZ+Ynx0Qcgyt+aHugZw5Sw9oFOT4WVqwLlC/NKvrjtY8pCQ1HtY5/agLHrDw
+            Hn2Phz1aQ+l4EAarphXCiYAFw/LHD2tisbQoApXe5tud9CjiyMu/14qhQalLgQxA
+            yGcMmhEH7Ke4bubaA0ZPo8hBXAkxfdeicSzB/e1IkUP4LtlQiwPldDcDShB6MROH
+            sK3RpELhSaNdfQZxqDVN0CgjRS0/AjboWejjrLQHD1hVcUDAU2WTyfvIaSxKpHIx
+            ONo5sTvzYOjU/BRTLn0EujRP414xadOtt+4gEQDrGacYAokuiK2ev0dinHo32EWY
+            j/vsb0o3whNRpBEGMZTUrl9HSkt58FQZsmu5JnL3ZYKiujHFoQS/aOcxD0slUxhC
+            PoCnce6PgmB78RHOLHaXkTrORc+6oMpCGN8/K1hjXE+eH/kk4jv8yVLwmbg9XjLS
+            XgFTcQYs6nVTSoWVea62kRN4qlC/XTJ6D91HXRX5UyB3qrZ3k+w9TOlM9quYYI/B
+            E0FqbFVSKT3ekPQqF91a7tV01FIxpfr4Mvzy2+8xsXiAQtDm52PSlk9eovkAMqU=
+            =nafU
+            -----END PGP MESSAGE-----
+        fp: B1C77B2CCF5575FAF0DA6B882CA51446C98C9D85
+    encrypted_regex: ^(username|password)$
+    version: 3.6.1
+```
+
+可以看到`username`和`password`的值都被加密了。
+
 ## Kamus
 
 Kamus 是一款开源的采用零信任的 secret 加解密方式为 Kubernetes 应用程序安全处理 secrets 的工具。Kamus 提供两种方式来对 Kubernetes secrets 进行加密，即
