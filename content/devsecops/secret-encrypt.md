@@ -325,7 +325,7 @@ sops:
 $ helm plugin install https://github.com/zendesk/helm-secrets 
 ```
 
-### Helm Secrets 的使用
+### 使用
 
 首先，创建一个演示用的`helm chart`，并在根目录下创建一个名为`helm_vars`的目录，用来存放用来加密的`secret`，如下所示：
 ```
