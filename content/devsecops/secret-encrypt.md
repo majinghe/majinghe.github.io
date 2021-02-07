@@ -162,6 +162,8 @@ password=passw0rd
 
 其他的 `secret` 类型，比如 tls、dockerconfigjson 等都可以用上面的方式进行使用。
 
+最后就可以将加密后的文件上传至源码管理系统了（比如 `git push` 至 `GitHub`)。
+
 ## Helm Secrets
 
 Helm Secrets 是 Helm 的一个插件，用来对于Helm Chart 中的敏感信息进行加密。
@@ -174,8 +176,6 @@ Helm Secrets 是 Helm 的一个插件，用来对于Helm Chart 中的敏感信�
 * sops
 
 关于 Helm 的介绍与使用可以查看[这篇公众号文章](https://mp.weixin.qq.com/s?__biz=Mzg3NjIzODc5NA==&mid=2247483702&idx=1&sn=aba5c37d0570dfaf74053ff55ab8155a&chksm=cf340393f8438a8558b627d466951b252990656d60826c91f8c10c8aa44e4cd329ebdc2f69d8&mpshare=1&scene=1&srcid=0206qXfqgb0wJITJVqxgqJ7Z&sharer_sharetime=1612610316961&sharer_shareid=69a671b032908bc53da173d06860fd16&exportkey=ATUCeld2T%2Bto3xSroQqGeNA%3D&pass_ticket=iUA3ldsRFzyThNhlk2ZEzJC9YRhNhoY8aCOqi5pTahkuTRrc5uTQqf4n1zganuN1&wx_header=0#rd)。下面我们简单介绍一下 sops。
-
-### sops
 
 `sops`是一个加密文件的编辑器，支持 YAML、JSON、ENV、INI 和二进制格式，并使用 AWS KMS、GCP KMS、Azure Key Vault 和PGP 进行加密。本文将使用 PGP 来进行加密。
 
@@ -647,7 +647,8 @@ data:
 password: passw0rd
 username: xiaomage
 ```
-最后，可以像正常方式在`pod`中引用此`secret`。
+此时，可以像正常方式在 `pod` 中引用此 `secret`。
+最后就可以将加密后的文件上传至源码管理系统了（比如 `git push` 至 `GitHub`)。
 
 
 
