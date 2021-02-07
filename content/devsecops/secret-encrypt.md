@@ -8,14 +8,18 @@ date: 2021-02-05T13:05:42+08:00
 type: "post"
 ---
 
+## 前言
+
+`Kubernetes` 已经毫无争议的成为了云原生时代的事实标准，在 `Kubernetes` 上部署应用程序也变得简单起来（无论是采用 `kustomize` 还是 `helm`），虽然对于敏感信息（比如用户名、密码、token 和证书等）的处理，`Kubernetes` 自己提供了 `secret` 这种方式，但是其是一种编码方式，而非加密方式，如果需要用版本控制系统（比如 git）来对所有的文件、内容等进行版本控制时，这种用编码来处理敏感信息的方式就显得很不安全了（即使是采用私有库），这一点在实现 `GitOps` 时，是一个痛点。基于此，本文就介绍三种可以加密 `Kubernetes secret` 的几种方式：`Sealed Secrets`、`Helm Secrets` 和 `Kamus`。
+
 
 ## Sealed Secrets
 
-Sealed Secrets 是加密 kubernetes secret 的一种方式，充分利用 kuberntes 的高扩展性，通过 CRD 来创建一个 `SealedSecret` 对象，然后将 secret 加密变成一个 `SealedSecret` 对象，而 `SealedSecret` 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。
+`Sealed Secrets` 是加密 `kubernetes secret` 的一种方式，充分利用 `kubernte`s 的高扩展性，通过 `CRD` 来创建一个 `SealedSecret` 对象，然后将 `secret` 加密变成一个 `SealedSecret` 对象，而 `SealedSecret` 只能够被运行于目标集群上的 controller 解密。其他人员和方式都无法正确解密原始数据。可以将加密后的文件直接推送至版本控制系统，而不用担心敏感信息被泄漏。
 
 ### 安装
 
-Sealed Secrets 有两部分组成：
+`Sealed Secrets` 有两部分组成：
 
 * 安装与集群侧的 `controller/operator`
 * 客户端工具：`kubeseal`
