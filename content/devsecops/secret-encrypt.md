@@ -652,6 +652,17 @@ username: xiaomage
 
 
 
+## 写在最后
+
+其实，安全处理`Kubernetes secret`的方式不仅仅上面的三种形式，还可以利用诸如`vault`等来管理应用程序部署中的敏感信息。但是不同的工具、不同的方式，其背后的思想和思路都差不太多。总结起来，差不多有一下几个点：
+
+* 充分利用`Kubernetes`的扩展能力，自定义一个`secret`对象用来存储加密后的数据（诸如`Sealed Secrets`的`SealedSecret`对象；`Kamus`的`KamusSecret`），让这些扩展的对象生成对应的`secret`对象，再正常使用`secret`对象。
+* 利用外部的敏感信息管理工具（诸如`vault`或者其他云厂商提供的服务）。
+* sops 是一种使用方便的加密工具，也是上述工具实现加密的秘密武器。
+
+> 关于`valut`的使用，可以查看[这篇公众号](https://mp.weixin.qq.com/s?__biz=Mzg3NjIzODc5NA==&mid=2247483804&idx=1&sn=92fe066f18f3af1eca9e724f77297b27&chksm=cf340339f8438a2fb87eb46e6ba4ea42f472311862b5e10330e23215320fcba6ebbb658627ed&mpshare=1&scene=1&srcid=0207oyWVOk1UeV58qkmOsP89&sharer_sharetime=1612690423053&sharer_shareid=69a671b032908bc53da173d06860fd16&exportkey=ATV1BKpFeM4Jd746dfTMYrQ%3D&pass_ticket=OsnwmInkJJWJH%2FW6UxyDOIM5VYMXKP1yQE9nq4fvd5W0QiKRYiy6GmJmcZ09sxLx&wx_header=0#rd)
+
+**没有一劳永逸的安全，只有永不止步的行动**。任何改变都是重要的。
 
 
 ## 参考
