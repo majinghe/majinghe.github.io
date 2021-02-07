@@ -21,13 +21,13 @@ type: "post"
 
 `Sealed Secrets` 有两部分组成：
 
-* 安装与集群侧的 `controller/operator`
+* 安装于集群侧的 `controller`
 * 客户端工具：`kubeseal`
 
 所以安装也分两步，安装`controller`和`kubeseal`。安装的方法在[这儿](https://github.com/bitnami-labs/sealed-secrets/releases)可以找到，可以先安装`controller`，执行如下命令即可：
 
 ```
-$ $ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.14.1/controller.yaml
+$ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.14.1/controller.yaml
 ```
 
 随后查看`kube-system` ns 下面的`controller` pod
@@ -320,7 +320,7 @@ sops:
 
 #### 安装 Helm Secrets plugin
 
-执行一下命令安装`helm-secrets` plugin
+执行以下命令安装`helm-secrets` plugin
 ```
 $ helm plugin install https://github.com/zendesk/helm-secrets 
 ```
@@ -363,7 +363,7 @@ EOF
 
 使用`helm secrets`来加密上述文件
 ```
-$ helm-3 secrets enc secrets.test.yaml
+$ helm secrets enc secrets.test.yaml
 Encrypting secrets.test.yaml
 Encrypted secrets.test.yaml
 ```
@@ -404,7 +404,7 @@ sops:
     version: 3.6.1
 ```
 
-需要注意的是，此时只是加密了需要加密的内容，但是这些内容改怎么用呢？其实也比较简单，就是：正常用。举例来说，在`helm chart`中，正常用`secret`的方式如下
+需要注意的是，此时只是加密了需要加密的内容，但是这些内容该怎么用呢？其实也比较简单，就是：正常用。举例来说，在`helm chart`中，正常用`secret`的方式如下
 ```
 apiVersion: v1
 kind: Secret
@@ -418,7 +418,7 @@ data:
   {{ $key }} : {{ $value | b64enc | quote}}
   {{- end}}
 ```
-而上面循环中引用的值`.Values.data`就是来自于上面`helm_vars`目录下的加密文件？怎么做到的呢？简单点说，就是执行`helm`的相关命令时，会先将`helm_vars`目录下的加密内容解密，并且“放在”`values.yaml`文件中，接下来的就和正常的`helm chart`使用是一样的了。在`chart`中的`deployment.yaml`文件中引用`secret`
+而上面循环中引用的值`.Values.data`就是来自于上面`helm_vars`目录下的加密文件。怎么做到的呢？简单点说，就是执行`helm`的相关命令时，会先将`helm_vars`目录下的加密内容解密，并且“放在”`values.yaml`文件中，接下来的就和正常的`helm chart`使用是一样的了。在`chart`中的`deployment.yaml`文件中引用`secret`
 ```
 ......
       containers:
@@ -433,7 +433,7 @@ data:
 
 接下来可以使用下面命令将上面生成的`chart`进行安装
 ```
-helm-3 secrets install test . --namespace test -f helm_vars/secrets.yaml -f values.yaml
+helm secrets install test . --namespace test -f helm_vars/secrets.yaml -f values.yaml
 ```
 接着查看生成的`pod`、`secret`
 ```
