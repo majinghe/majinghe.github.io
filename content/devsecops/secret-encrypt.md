@@ -259,12 +259,13 @@ uid           [ultimate] xiaomage (gpg key generation) <devops@xiaomage.com>
 sub   rsa4096 2021-01-08 [E] [expires: 2022-01-08]
 ```
 
-再用 sops 来加密数据之前，先创建一个`.sops.yaml`文件，写一个加密的规则，比如只加密`key`是`username`和`password`的敏感信息，而且需要指定 gpg 的 fingerprint。
+在用 sops 来加密数据之前，先创建一个`.sops.yaml`文件，写一个加密的规则，比如只加密`key`是`username`和`password`的敏感信息，而且需要指定 gpg 的 fingerprint。
 ```
 cat << EOF > .sops.yaml
 creation_rules:
   - encrypted_regex: '^(username|password)$'
     pgp: 'B1C77B2CCF5575FAF0DA6B882CA51446C98C9D85'
+EOF
 ```
 
 接着，将下面的敏感信息写入一个yaml文件
@@ -312,6 +313,140 @@ sops:
 ```
 
 可以看到`username`和`password`的值都被加密了。
+
+#### 安装 Helm Secrets plugin
+
+执行一下命令安装`helm-secrets` plugin
+```
+$ helm plugin install https://github.com/zendesk/helm-secrets 
+```
+
+### Helm Secrets 的使用
+
+首先，创建一个演示用的`helm chart`，并在根目录下创建一个名为`helm_vars`的目录，用来存放用来加密的`secret`，如下所示：
+```
+$ tree
+.
+└── devsecops
+    ├── Chart.yaml
+    ├── charts
+    ├── helm_vars
+    │   ├── secrets.yaml
+    │   ├── tls.crt
+    │   └── tls.key
+    ├── templates
+    │   ├── NOTES.txt
+    │   ├── _helpers.tpl
+    │   ├── deployment.yaml
+    │   ├── hpa.yaml
+    │   ├── ingress.yaml
+    │   ├── secrets.yaml
+    │   ├── service.yaml
+    │   ├── serviceaccount.yaml
+    │   └── tests
+    │       └── test-connection.yaml
+    └── values.yaml
+```
+
+将需要加密的信息写入`secrets.yaml`文件里面，比如
+```
+cat << EOF > secrets.yaml
+secret_data:
+  username: xiaomage
+  password: passw0rd
+EOF
+```
+
+使用`helm secrets`来加密上述文件
+```
+$ helm-3 secrets enc secrets.test.yaml
+Encrypting secrets.test.yaml
+Encrypted secrets.test.yaml
+```
+查看加密后的文件内容
+```
+secret_data:
+    username: ENC[AES256_GCM,data:O/1pyNsL3Gc=,iv:HZ0MrGWaBxM37cIkp/JdsA5gRzw6aJFfBR19rno3h5I=,tag:2SiMs46lonnwECc8RHfT/Q==,type:str]
+    password: ENC[AES256_GCM,data:l15XlhZ4CsM=,iv:TMbV6+Rh2wGpMlHi7zJsHWM6IxMK2hBuMKsD82p8LiY=,tag:N4Kbftl//B1U2R9Khsduzg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    lastmodified: '2021-02-07T06:19:15Z'
+    mac: ENC[AES256_GCM,data:dSXjEbKyBXVtqqSqshGXKUwDJcMVZrDf2GxFj0Oor3FDnNeS+bTY4Yubv1J0XlzU6yxO0Y87NzVN84unkF/Ph95JJV2opk6a0VTtaxKYOFUVneyY5WQ2glHEntX+aEq1lJkW1Sd34i/tvWeSABemIX4M2xcIOdIaCHgzk//vi9w=,iv:febius/ashzpdfKStJnQYVG/3FrVaYw102q87P9+egQ=,tag:/MUXrxhhOk6F8MS5wi7cLQ==,type:str]
+    pgp:
+    -   created_at: '2021-02-07T06:19:08Z'
+        enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA7Oc9Dk1ccccARAAk7l23omTBRThnP7YC5AHdqzEO8Lapxc8ycWg5tsbM8eE
+            JaRFn4u3/+dQdpL6xlHv1wu0kmrZUgG8P41WmNDIKb2GtAlHQk+bjjV2IU0lCEj7
+            9UZXuAyhxHtVjHMBnzjppFh+6L0nH2K5AGaJWATwhO9M6CqmdCFnWJx7vAPfVQZF
+            Li9zqHK/YsbwgEWKs0bVvJ1btB7u4J5olKagYaZhaFaLzwjbtXmEqDUpfmPkooNr
+            7kPSVe8IMv/+MUaJY6uYNTBGWGrije4bY4A+hA/dUj4yN0gqqd796oc9GuN1MJSO
+            cAAoiTW2Vrw3OdyP7PIJVuxlS9gXnxtBOjo+p/Ij91ELq+DnC+6bGS9UIeF+Y1RD
+            h4siwx7I7hzk9tp+tXmsfdJit+usK6raPzYkcBgZVF8woKZsp2/qxloYyIFJ0sbK
+            MO67+dcAg+AX0M0/u33t1BAMTt/LJ1V2ZQUl+yzjRSKfZ2bCmd/skkE3VZx2ls44
+            LMngWZG7EzE39Onw9PB3ukXD7W+X+BThc2AJzVotrpDWbSI2/anoM9TMJjYfBjyU
+            xBuTuoviT5ENdm14bGomww9G+Ean3dyC2vWoHhY2KfuPlSxZ6mDIDm5zAPkZZl5A
+            QHjtaPT5qymPCpqy2X3yvK76zyJhfWYFIHguOy3JlDxiONC9DH1M6OVWoC69pPzS
+            XgEtII9fTeLXFU5Jy9gJa5nNKEQY87OkSXl3TFAiQ9OmgDbuUHZuvQzlecsKwR2s
+            mS7P7Z3Bb+eRakQ41Gzw4B7wmOrm2w0t4guVJDNIP/gQB0XBO1XZj4RsbMKn070=
+            =yQ2R
+            -----END PGP MESSAGE-----
+        fp: B1C77B2CCF5575FAF0DA6B882CA51446C98C9D85
+    encrypted_regex: ^(data|username|password|.dockerconfigjson|token|token1|key|crt)$
+    version: 3.6.1
+```
+
+需要注意的是，此时只是加密了需要加密的内容，但是这些内容改怎么用呢？其实也比较简单，就是：正常用。举例来说，在`helm chart`中，正常用`secret`的方式如下
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test
+  labels:
+    app: devsecops
+type: Opaque
+data:
+  {{- range $key, $value := .Values.data}}
+  {{ $key }} : {{ $value | b64enc | quote}}
+  {{- end}}
+```
+而上面循环中引用的值`.Values.data`就是来自于上面`helm_vars`目录下的加密文件？怎么做到的呢？简单点说，就是执行`helm`的相关命令时，会先将`helm_vars`目录下的加密内容解密，并且“放在”`values.yaml`文件中，接下来的就和正常的`helm chart`使用是一样的了。在`chart`中的`deployment.yaml`文件中引用`secret`
+```
+......
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: test
+......
+```
+
+接下来可以使用下面命令将上面生成的`chart`进行安装
+```
+helm-3 secrets install test . --namespace test -f helm_vars/secrets.yaml -f values.yaml
+```
+接着查看生成的`pod`、`secret`
+```
+$ kubectl -n test get pods,secret
+pod/test-devsecops-7876ffc8b7-967xr   1/1     Running   0          6s
+secret/test                         Opaque                                2      8s
+```
+由于上面的`secret`是以环境变量的形式注入到`pod`里面的，可以查看进行验证
+```
+$ kubectl -n test exec -it test-devsecops-7876ffc8b7-967xr sh
+$ env | grep -E 'username|password'
+username=xiaomage
+password=passw0rd
+```
+可以看到`secret`解密成功，并成功注入`pod`。
+
+最后就可以将加密后的文件上传至源码管理系统了（比如`git push`至`GitHub`)。
 
 ## Kamus
 
@@ -514,7 +649,7 @@ username: xiaomage
 
 
 
-### 参考
+## 参考
 1. https://github.com/Soluto/kamus
 2. https://kamus.soluto.io/
 3. https://blog.solutotlv.com/can-kubernetes-keep-a-secret/
