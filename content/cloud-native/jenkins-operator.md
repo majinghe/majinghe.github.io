@@ -102,3 +102,53 @@ spec:
           cpu: "1"
           memory: 500Mi
 ```
+
+上述文件依赖于 `jenkins-config` 这个对 jenkins configruation 的描述，需要先创建 `jenkins-config` 这部分内容，此内容是以 `configmap` 的形式来描述 jenkins configuration 的配置的，诸如`LDAP、GitHub Server` 等。具体内容可参考如下
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-config
+data:
+  jenkins.yaml: |
+    security:
+      scriptApproval:
+      /*Script Approval 配置部分*/
+        approvedSignatures:
+        - "method groovy.json.JsonSlurper parse java.io.Reader"
+    unclassified:
+      slackNotifier:
+      /*slack 配置部分*/
+        teamDomain: slack-test 
+        tokenCredentialId: "slack-token"
+      gitHubPluginConfig:
+      /*GitHub Server 配置部分*/
+        configs:
+          - name: "GitHub"
+            apiUrl: "https://api.github.com/v3/"
+            credentialsId: "github-token"
+            manageHooks: true
+    jenkins:
+      clouds:
+      /*kubernetes 配置部分*/
+      - kubernetes:
+          jenkinsTunnel: "jenkins-operator-slave-jenkins.jenkins.svc.cluster.local:50000"
+          jenkinsUrl: "http://jenkins-operator-http-jenkins.jenkins.svc.cluster.local:8080"
+          name: "kubernetes"
+          namespace: "jenkins"
+          retentionTimeout: 15
+          serverUrl: "https://kubernetes.default.svc.cluster.local:443"
+      systemMessage: "<Cloud Native DevSecOps>"
+      securityRealm:
+        ldap:
+        /*LDAP 配置，根据你的 LDAP 配置信息修改即可*/
+          configurations:
+            - server: "xxxx"
+              rootDN: "xxxx"
+              userSearchBase: "xxxx"
+              userSearch: "xxxx"
+              groupSearchBase: "xxxxxx"
+              groupMembershipStrategy:
+                fromGroupSearch:
+                   filter: ""
+```
