@@ -152,3 +152,25 @@ data:
                 fromGroupSearch:
                    filter: ""
 ```
+接下来只需要将上述内容写入 `yaml` 文件创建 `configmap` 即可
+```
+$ kubectl -n  jenkins apply -f config.yaml
+configmap/jenkins-config created
+```
+创建 jenkins 实例
+```
+$ kubectl -n jenkins apply -f jenkins.yaml
+jenkins.jenkins.io/jenkins created
+```
+此时，可以在 operator pod 的 log 中看到如下信息
+```
+2021-04-04T08:21:44.049Z	INFO	controller-jenkins	base/pod.go:159	Creating a new Jenkins Master Pod jenkins/jenkins-jenkins	{"cr": "jenkins"}
+```
+查看 `jenkins` ns 下面的 pod
+```
+$ kubectl -n jenkins get pods -w
+NAME                                     READY   STATUS    RESTARTS   AGE
+jenkins-jenkins                          2/2     Running   0          13d
+jenkins-operator-5cd7d8887c-klphr        1/1     Running   0          13d
+```
+
