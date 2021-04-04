@@ -36,22 +36,80 @@ Jenkins Oprator 的安装有两种方式：
 * 用 `kubectl apply` 来完成
 * 用 `helm install` 来完成
 
-关于两种方式的不同使用命令，可以在[这儿](https://jenkinsci.github.io/kubernetes-operator/docs/installation/)来查看，本文选择用 `helm install` 来完成。
+关于两种方式的不同使用命令，可以在[这儿](https://jenkinsci.github.io/kubernetes-operator/docs/installation/)来查看，本文选择用 `kubectl apply` 来完成。
 
 创建一个 `jenkins` namespace
 ```
 $ kubectl create ns jenkins
 ```
 
-添加 helm repo
-
-```
-$ helm repo add jenkins https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
-```
-
-> 本文使用 helm 3.x 版本。
-
 安装 Operator
 ```
-$ helm install jenkins --namespace jenkins jenkins/jenkins-operator
+$ kubectl  -n jenkins apply -f jenkins_operator.yaml
+serviceaccount/jenkins-operator created
+role.rbac.authorization.k8s.io/jenkins-operator created
+rolebinding.rbac.authorization.k8s.io/jenkins-operator created
+deployment.apps/jenkins-operator created
+```
+查看 `jenkins` namespaace 下面的 `pod`
+```
+$ kubectl -n jenkins get pods -w
+NAME                                READY   STATUS    RESTARTS   AGE
+jenkins-operator-548d76f664-hp6pm   0/1     Pending   0          0s
+jenkins-operator-548d76f664-hp6pm   0/1     ContainerCreating   0          1s
+jenkins-operator-548d76f664-hp6pm   1/1     Running             0          34s
+```
+### Step 3：创建 Jenkins 实例
+
+此时如果创建一个 Jenkins 实例，Operator 就会监听到这个事件，从而根据我们对 Jenkins 实例的描述（Jenkins 实例的描述文件 ，以 yaml 格式出现）来创建实例。关于实例的描述文件的格式内容，可以在[这儿](https://jenkinsci.github.io/kubernetes-operator/docs/getting-started/latest/schema/)进行查看。本文使用的文件即内容解释如下
+```
+apiVersion: jenkins.io/v1alpha2
+kind: Jenkins
+metadata:
+  name: jenkins
+spec:
+/*configurationAsCode 用来描述 jenkins configruation 部分的内容，比如 Github Server、Slack、LDAP 等的配置。上述内容通过 Jenkins Configuration As Code 的形式来组织的。下文会给大家展示用法*/ 
+  configurationAsCode:
+    configurations:
+    - name: jenkins-config
+  serviceAccount:
+    annotations:
+      kubernetes.io/service-account: jenkins
+  master:
+    basePlugins:
+    /*配置与 master 相关的一些配置，比如想要安装的必要插件*/
+    - name: kubernetes
+      version: "1.29.2"
+    plugins:
+    /*配置与 master 相关的一些配置，比如想要安装的其他插件*/
+    - name: ldap
+      version: "2.4"
+    - name: github
+      version: "1.33.1"
+    - name: credentials
+      version: "2.3.15"
+    - name: slack
+      version: "2.46"
+    containers:
+    /*master 容器的配置，包括镜像、资源限制、环境变量等*/
+    - name: jenkins-master
+      image: jenkins/jenkins:lts
+      imagePullPolicy: Always
+      env:
+      - name: JENKINS_HOME
+        value: /var/lib/jenkins
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+        requests:
+          cpu: "1"
+          memory: 500Mi
+      securityContext:
+        runAsUser: 0
+        fsGroup: 0
+      volumeMounts:
+      - mountPath: /var/lib/jenkins/jobs # Jenkins home volume
+        subPath: jobs
+        name: jenkins-master
 ```
