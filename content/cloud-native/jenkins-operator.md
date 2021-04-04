@@ -86,10 +86,6 @@ spec:
       version: "2.4"
     - name: github
       version: "1.33.1"
-    - name: credentials
-      version: "2.3.15"
-    - name: slack
-      version: "2.46"
     containers:
     /*master 容器的配置，包括镜像、资源限制、环境变量等*/
     - name: jenkins-master
@@ -105,11 +101,4 @@ spec:
         requests:
           cpu: "1"
           memory: 500Mi
-      securityContext:
-        runAsUser: 0
-        fsGroup: 0
-      volumeMounts:
-      - mountPath: /var/lib/jenkins/jobs # Jenkins home volume
-        subPath: jobs
-        name: jenkins-master
 ```
