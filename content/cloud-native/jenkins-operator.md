@@ -218,3 +218,90 @@ $ kubectl -n jenkins port-forward pods/jenkins-jenkins 8080:8080
 至此，通过 jenkins-operator 安装 jenkins 的过程已经完美实现，接下来是使用篇。
 
 # 进阶篇：使用
+
+传统的使用方法就是在界面上点击创建 jenkins job，然后进行配置，最后再使用。但是 jenkins-operator 提供了另外一个 operator—— Seed Jobs，顾名思义，就是能够实现 job 的自动发现。其背后的原理其实是借助 Jenkins Job DSL 和 Configuration As Code：也即将 job 通过 DSL 来进行描述（描述包括 Job 名称，配置，Pipeliine 脚本等），然后将这种描述的代码存放到 GitHub 上。Seed Jobs 根据配置来自动捕获 job 添加的动作，从而完成 job 的创建。
+
+Seed Job 的使用前提是 job 定义文件和 job pipeline 文件需要具有如下的文件目录结构
+```
+cicd/
+├── jobs
+│   └── job-dsl-file
+└── pipelines
+    └── pipeline-file
+```
+
+Seed Job 可以通过在 `jenkins` 的配置文件中添加如下内容来启用
+```
+apiVersion: jenkins.io/v1alpha2
+kind: Jenkins
+metadata:
+  name: jenkins
+spec:
+  master:
+  # 可参考第一部分中的相关配置内容 
+  seedJobs:
+  - id: Demo
+    targets: "cicd/jobs/demo_pipeline.groovy" # job dsl 脚本的位置
+    credentialType: basicSSHUserPrivateKey
+    credentialID: github-ssh-key
+    description: "CI/CD Repo"
+    repositoryBranch: main
+    repositoryUrl: git@github.com:majinghe/jenkins-operator.git  # cicd 仓库地址
+```
+然后重新创建 jenkins 资源即可
+```
+$ kubectl -n jenkins apply -f jenkins.yaml
+```
+
+随后即可看到在 jenkins namespace 下面能看到 seed job 的pod
+```
+$ kubectl -n jenkins get pods
+NAME                                      READY   STATUS    RESTARTS   AGE
+jenkins-jenkins                           1/1     Running   0          122m # jenkins master pod
+jenkins-operator-5cd7d8887c-tfhg4         1/1     Running   0          5h2m # jenkins operator pod
+seed-job-agent-jenkins-7ff6d479db-6gqjl   1/1     Running   0          120m # see job pod
+```
+
+重新登陆 jenkins 就能看到两个 job，一个为Seed Job，一个为最终要真正使用的 Job。此后，只要 job 有修改，只需要修改 GitHub 上关于job的代码即可，然后重新运行 Seed Job 就能把实际使用 Job 的内容进行更新。其实也就做到了一切皆代码。一旦 jenkins 有任何问题，也可以通过重建来快速拉起相应的 job。相当于多一层备份机制（这个只能备份 job，job 历史会丢失，如果需要备份 job 历史，可以给 job 历史目录做持久化或者利用 jenkins-operator 的 backup 和 restore 机制，详细内容可以查看[这儿](https://jenkinsci.github.io/kubernetes-operator/docs/getting-started/latest/configure-backup-and-restore/))
+
+
+# 高阶篇：利用 kustomize 来部署 jenkins-operator
+
+上面的流程给大家展示了如何一步步来完成 jenkins-operator 的安装和使用，但是通过 `kubectl apply` 来一个个创建需要的资源谁比较繁琐的，而且在多套差异化环境下，这种重复的工作量没有任何意义。所以本文使用了 `kustomize` 来管理差异化环境下众多的 yaml 文件，目录结构如下
+```
+.
+├── base
+│   ├── config.yaml
+│   ├── jenkins-rbac.yaml
+│   ├── jenkins.yaml
+│   ├── jenkins_crd.yaml
+│   ├── jenkins_operator.yaml
+│   ├── kops-secret.yaml
+│   ├── kustomization.yaml
+│   └── secret
+│       └── credentials.secret.yaml
+└── overlays
+    ├── dev
+    │   ├── ingress.yaml
+    │   ├── jenkins.yaml
+    │   ├── kops-secret.yaml
+    │   ├── kustomization.yaml
+    │   └── secret
+    │       └── secret.tls.yaml
+    ├── prod
+    │   ├── ingress.yaml
+    │   ├── jenkins.yaml
+    │   ├── kops-secret.yaml
+    │   ├── kustomization.yaml
+    │   └── secret
+    │       └── secret.tls.yaml
+    └── svt
+        ├── ingress.yaml
+        ├── jenkins.yaml
+        ├── kops-secret.yaml
+        ├── kustomization.yaml
+        └── secret
+            └── secret.tls.yaml
+```
+
+关于 `kustomize` 的使用方法，大家可以看[这儿](https://kustomize.io/)。上述整个代码库在[这儿](https://github.com/majinghe/jenkins-operator)。文中使用了 [sops](https://github.com/mozilla/sops) 来加密 yaml 文件中的敏感信息，这样真正能够做到将一切代码化，然后托管到 GitHub 上。关于 sops 的使用敬请期待后面的文章。
