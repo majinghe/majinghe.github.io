@@ -8,6 +8,8 @@ date: 2021-04-01T13:05:42+08:00
 type: "post"
 ---
 
+# 入门篇：jenkins-operator 的介绍及安装
+
 ## 前言
 
 Operator 是 Kubernetes 的一种扩展机制，用户可以利用这种扩展机制来让自己的应用以 Kubernetes native（k8s 原生）的方式在 kubernetes 平台上运行起来。关于 Operator 更多详细的内容，可以在[Kubernetes 官方文档](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)上查看。
@@ -173,4 +175,46 @@ NAME                                     READY   STATUS    RESTARTS   AGE
 jenkins-jenkins                          2/2     Running   0          13d
 jenkins-operator-5cd7d8887c-klphr        1/1     Running   0          13d
 ```
+如果想通过`ingress`来对外暴漏 jenkins 的服务，则可以按照下面的 yaml 文件来创建 ingress 资源
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+ name: jenkins
+ annotations:
+   kubernetes.io/ingress.class: "nginx"
+   nginx.ingress.kubernetes.io/redirect-to-https: "True"
+spec:
+ tls:
+ - hosts:
+   - xiaomage.devops.com
+   secretName: jenkins-tls
+ rules:
+ - host: xiaomage.devops.com
+   http:
+     paths:
+     - path: /
+       pathType: Prefix
+       backend:
+         service:
+           name: jenkins-operator-http-jenkins
+           port:
+             number: 8080
+```
 
+接着通过访问 `https://xiaomage.devops.com` 来访问 jenkins 界面。登陆的用户名和密码可以通过如下命令获取：
+```
+$ kubectl -n jenkins get secrets jenkins-operator-credentials-jenkins -o jsonpath='{.data.user}' | base64 -D
+kubectl -n jenkins get secrets jenkins-operator-credentials-jenkins -o jsonpath='{.data.password}' | base64 -D
+```
+
+此外，也可以通过 `port-forward` 的方式来使用 jenkins：
+```
+$ kubectl -n jenkins port-forward pods/jenkins-jenkins 8080:8080
+```
+
+直接访问 `http://localhost:8080` 即可访问 jenkins 界面。获取登陆用户名和密码的方法同上。
+
+至此，通过 jenkins-operator 安装 jenkins 的过程已经完美实现，接下来是使用篇。
+
+# 进阶篇：使用
