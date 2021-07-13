@@ -65,6 +65,15 @@ GitOps 的核心原则之一就是：一切皆代码，随后用 GitHub/GitLab �
 
 ![sops](images/gotc.gif)
 
+不管采用哪种工具，其背后的原理都类似：采用非对称加密，有一对用于加解密的 key，加密是通过 public key 将敏感信息进行加密；解密是通过 private key 将加密信息解密，并生成 kubernetes 能识别的 secret 资源，最终被应用程序所使用。
+
+加密示意图
+
+![encryption](images/encryption.png)
+
+解密示意图
+
+![decryption](images/decryption.png)
 ### 镜像生成
 
 ArgoCD 用名字就能看出（有个 CD），它侧重于持续部署这一块儿，但是完整的软件开发生命周期还有 CI 阶段，也就是说给 ArgoCD 一个镜像，它就能帮助我们完成镜像，但是它却不管镜像从哪儿来。这时候我们选择了[Tekton](https://github.com/tektoncd)来帮助我们完成源码到镜像的华丽转变。
