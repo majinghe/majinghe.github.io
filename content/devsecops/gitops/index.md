@@ -20,7 +20,7 @@ type: "post"
 
 上述流程包含了从开发人员提交代码到代码构建检测再到镜像构建最后进行数据以及后续测试的流程（可能每个公司针对不同项目会略有不同，但是整体不会有太大出入）。当做好自动化以后，上述流程可以很好的实践持续集成、持续部署、持续交付，从而提升研发效率的。但是却也有一个很大的问题：流程都是从左往右进行（我称之为一杆子到底），针对于云原生应用（一切都可以用 yaml 文件进行描述，并存储在配置仓库中），很难保证配置描述和云原生底座（kubernetes 集群）上的实际状态真正相符，随着时间的推移，很容易发生另外一种“配置漂移”（配置仓库和实际状态不相符合）。
 
-这种情况下就面不了人工智能（Human Intelligence）的再次介入，来：
+这种情况下就免不了人工智能（Human Intelligence）的再次介入，来：
 
 * 登陆 kubernetes 集群，查看应用程序相应的状态，包括对某些环境变量、资源配置、版本信息等进行确认。
 * 通过查看 IAM 用户信息及其他审计工具来应对安全合规团队的审计（比如列举出某个集群的用户以及用户曾经做了哪些操作）
@@ -51,7 +51,7 @@ type: "post"
 
 ### 敏感信息处理
 
-GitOps 的核心原则之一就是：一切皆代码，随后用 GitHub/GitLab 等对代码进行版本控制。这就引出了第一个问题：代码中的敏感信息怎么处理。我一直来以倡导的是不要将敏感信息放到代码然后推送至参数，为此还用了 git-secrets 来检测代码中的敏感信息（可查看 [git-secrets —— 从源头把控，防止敏感信息泄漏](https://mp.weixin.qq.com/s?__biz=Mzg3NjIzODc5NA==&mid=2247483812&idx=1&sn=bf827f939e383670b1ac7f12f9310fd4&chksm=cf340301f8438a1750ebbf572c9faee51fae12ea297474b89e854f90bce3431be2faf28f2689&mpshare=1&scene=1&srcid=0713Jpos7rw22iYn2SdcJlyU&sharer_sharetime=1626161942979&sharer_shareid=69a671b032908bc53da173d06860fd16&exportkey=ASViVFsA0mXvjNXU%2B02vlGg%3D&pass_ticket=nOCryZHOHqGg7fssbtg2s8S0Kn46FvoTLDmByUzgsdz7XJ3Q4bG%2BLVx2KTxmGEM7&wx_header=0#rd)这篇公众号）。
+GitOps 的核心原则之一就是：一切皆代码，随后用 GitHub/GitLab 等对代码进行版本控制。这就引出了第一个问题：代码中的敏感信息怎么处理。我一直以来倡导的是不要将敏感信息放到代码然后推送至参数，为此还用了 git-secrets 来检测代码中的敏感信息（可查看 [git-secrets —— 从源头把控，防止敏感信息泄漏](https://mp.weixin.qq.com/s?__biz=Mzg3NjIzODc5NA==&mid=2247483812&idx=1&sn=bf827f939e383670b1ac7f12f9310fd4&chksm=cf340301f8438a1750ebbf572c9faee51fae12ea297474b89e854f90bce3431be2faf28f2689&mpshare=1&scene=1&srcid=0713Jpos7rw22iYn2SdcJlyU&sharer_sharetime=1626161942979&sharer_shareid=69a671b032908bc53da173d06860fd16&exportkey=ASViVFsA0mXvjNXU%2B02vlGg%3D&pass_ticket=nOCryZHOHqGg7fssbtg2s8S0Kn46FvoTLDmByUzgsdz7XJ3Q4bG%2BLVx2KTxmGEM7&wx_header=0#rd)这篇公众号）。
 
 除此以外，我们还有另外一种手段，那就是将敏感信息进行加密后推送至仓库（只要保证加密所用的 key，就能很好的保证敏感信息的泄漏）。关于加密所用的手段，可以查看 CNCF 发布的 Secrets Management Technology Radar。
 
