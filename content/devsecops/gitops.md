@@ -37,4 +37,18 @@ type: "post"
 * 以声明式系统为基座（典型如 Kubernetes）
 * 以 Git（GitHub/GitLab等）为单一可信源
 
+## GitOps 实现之拦路虎
 
+### 敏感信息处理
+
+GitOps 的核心原则之一就是：一切皆代码，随后用 GitHub/GitLab 等对代码进行版本控制。这就引出了第一个问题：代码中的敏感信息怎么处理。我一直来以倡导的是不要将敏感信息放到代码然后推送至参数，为此还用了 git-secrets 来检测代码中的敏感信息（可查看 git-secrets —— 从源头把控，防止敏感信息泄漏这篇公众号）。
+
+除此以外，我们还有另外一种手段，那就是将敏感信息进行加密后推送至仓库（只要保证加密所用的 key，就能很好的保证敏感信息的泄漏）。关于加密所用的手段，可以查看 CNCF 发布的 Secrets Management Technology Radar。
+
+![radar](/static/radar)
+
+从技术雷达看，有多种手段诸如 Vault，Sealed Secrets，Sops 等开源产品，也有 AWS KMS，GCP Secrets Management 等厂商提供的产品。关于 Vault 的原理解析即落地实践，可以查看DevSecOps Secret Data 管理之 Vault —— 以更安全的方式管理 Secret Data 这篇公众号。关于 Sealed Secrets 等方式可以查看 Kubernetes secrets 加密处理的几种方式这篇公众号。
+
+下面我们讲讲我的公众号中没有涉及过的 sops 方式。
+
+### 镜像生成
