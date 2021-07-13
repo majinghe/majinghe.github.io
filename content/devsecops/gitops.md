@@ -4,7 +4,7 @@ description: "GitOps 是云原生应用部署的正确方式"
 author: 马景贺（小马哥）
 categories: ["GitOps"]
 tags: ["Tekton","ArgoCD"]
-date: 2021-02-05T13:05:42+08:00
+date: 2021-07-10T13:05:42+08:00
 type: "post"
 ---
 
