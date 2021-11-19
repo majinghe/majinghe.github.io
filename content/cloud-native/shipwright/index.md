@@ -69,7 +69,7 @@ NAME                                           READY   STATUS    RESTARTS   AGE
 shipwright-build-controller-5f7b744cd5-cllz7   1/1     Running   0          5m31s
 ```
 
-接下来需要安装 `strategy`。`strategy` 是一系列 `step` 的定义，主要是用开头叙述的集中主流镜像工具来完成镜像工作。`strategy` 有两种：`ClusterBuildStrategy（对应的 API 是 `clusterbuildstrategies.shipwright.io/v1alpha1`）和 BuildStrategy（对应的 API 是 `buildstrategies.shipwright.io/v1alpha1`）。这两种的区别就是：**前者是针对集群级别的，而后者是针对 `namespace` 级别的）。
+接下来需要安装 `strategy`。`strategy` 是一系列 `step` 的定义，主要是用开头叙述的集中主流镜像工具来完成镜像工作。`strategy` 有两种：`ClusterBuildStrategy`（对应的 API 是 `clusterbuildstrategies.shipwright.io/v1alpha1`）和 **BuildStrategy**（对应的 API 是 `buildstrategies.shipwright.io/v1alpha1`）。这两种的区别就是：**前者是针对集群级别的，而后者是针对 `namespace` 级别的**。
 
 可用下面的命令完成 `strategy` 的安装：
 
@@ -276,5 +276,8 @@ INFO[0064] CMD ["./devops"]
 INFO[0066] Pushing image to dllhb/shipwright-demo:v1.0.2
 INFO[0075] Pushed image to 1 destinations
 ```
+# 写在最后
+
+Shiwright 使用了 Kubernetes 的扩展机制（CRD），将多种主流镜像构建的工具进行了一个封装，再使用 Tekton 做一个构建引擎。原理比较简单，好处就是不用去关心每个构建工具是如何使用，因为将所有的工具做了一层封装，用户只需要通过简单的声明就可以用不同的工具来完成镜像的构建。
 
 其实，`shipwright` 的好处就是不用去关系每个构建工具是如何使用，将所有的工具做了一层封装，用户只需要通过简单的声明就可以用不同的工具来完成镜像的构建。
