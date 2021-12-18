@@ -79,7 +79,7 @@ $ cosign generate-key-pair k8s://tekton-chains/signing-secrets
 整个过程会让你输入一个 `password`，此 `password` 是用来解密 `cosign.key` 的。整个过程会在 `tekton-chains` namespace 下面生成一个名为 `signing-secrets` 的 `secret`：
 
 ```
-ubectl -n tekton-chains get secret
+$ kubectl -n tekton-chains get secret
 NAME                                   TYPE                                  DATA   AGE
 signing-secrets                        Opaque                                3      6d3h
 ```
