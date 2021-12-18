@@ -4,7 +4,7 @@ description: "Tekton Chains 是 Tekton 新增的一个功能，主要用来实�
 author: 马景贺（小马哥）
 categories: ["Supply Chain Security","CI/CD"]
 tags: ["Cloud Native","Supply Chain Security"]
-date: 2021-18-11T13:05:42+08:00
+date: 2021-12-18T13:05:42+08:00
 type: "post"
 ---
 
