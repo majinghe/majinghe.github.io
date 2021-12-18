@@ -21,7 +21,6 @@ Tekton Chain 的工作原理是：观测 Tekton 集群中所有 `TaskRuns` 的�
 
 大概原理如下图所示：
 
-
 ![tekton-chain-get-started](images/getting_started.png)
 
 
