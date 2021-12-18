@@ -1,0 +1,134 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Tekton Chains 是如何保证 Tekton 供应链安全的 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="Tekton Chains 是 Tekton 新增的一个功能，主要用来实现 Tekton 的供应链安全（supply chain security）"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/cloud-native/tekton-supply-chain/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Tekton Chains 是如何保证 Tekton 供应链安全的"><meta property="og:description" content="Tekton Chains 是 Tekton 新增的一个功能，主要用来实现 Tekton 的供应链安全（supply chain security）"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/cloud-native/tekton-supply-chain/"><meta itemprop=name content="Tekton Chains 是如何保证 Tekton 供应链安全的"><meta itemprop=description content="Tekton Chains 是 Tekton 新增的一个功能，主要用来实现 Tekton 的供应链安全（supply chain security）"><meta itemprop=wordCount content="1535"><meta itemprop=keywords content="Cloud Native,Supply Chain Security,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Tekton Chains 是如何保证 Tekton 供应链安全的"><meta name=twitter:description content="Tekton Chains 是 Tekton 新增的一个功能，主要用来实现 Tekton 的供应链安全（supply chain security）"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Tekton Chains 是如何保证 Tekton 供应链安全的</h1><div class=post-meta><span class=post-time>0001-01-01</span><div class=post-category><a href=/Cloud-Native-DevSecOps/categories/supply-chain-security/>Supply Chain Security</a>
+<a href=/Cloud-Native-DevSecOps/categories/ci/cd/>CI/CD</a></div></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#关于-tekton-chain>关于 Tekton Chain</a></li><li><a href=#tekton-chains-安装>Tekton Chains 安装</a></li><li><a href=#tekton-chains-的设置>Tekton Chains 的设置</a><ul><li><a href=#支持的签名密钥>支持的签名密钥</a><ul><li><a href=#cosign>cosign</a></li></ul></li></ul></li><li><a href=#tekton-chain-的使用>Tekton Chain 的使用</a></li></ul></nav></div></div><div class=post-content><p align=center><img src=images/tekton_chains-color.png alt="Tekton Chains logo"></img></p><h1 id=关于-tekton-chain>关于 Tekton Chain</h1><p>Tekton Chain 是一个 Kubernetes CRD controller，可以用来帮助用户管理 Tekton 的 supply chain security（供应链安全）。简单点说，就是更安全的获取 CI/CD Pipeline 执行的元数据，以确保利用 Tekton 构建的 CI/CD Pipeline 执行流程是安全的。</p><p>Tekton Chain 的工作原理是：观测 Tekton 集群中所有 <code>TaskRuns</code> 的执行。当 <code>TaskRuns</code> 完成执行，Chains 就会为其做一个快照，随后快照会被转换成一些标准的负载（payload）格式，并在将它们签名后进行存储。目前支持 x509、KMS 等对 <code>TaskRun</code> 以及 OCI 镜像进行签名。</p><p>大概原理如下图所示：</p><p><img src=images/getting_started.png alt=tekton-chain-get-started></p><h1 id=tekton-chains-安装>Tekton Chains 安装</h1><p>Tekton Chains 依赖<a href=https://github.com/tektoncd/pipeline/blob/main/docs/install.md>Tekton Pipelines</a>。使用如下命令即可完成最新版本的安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+</code></pre></td></tr></table></div></div><p>可以在 <code>tekton-pipelines</code> namespace 下面看到有 pod 生成：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-pipelines get pods
+NAME                                          READY   STATUS        RESTARTS   AGE
+tekton-pipelines-controller-99b764966-bzm9p   1/1     Running       0          5m20s
+tekton-pipelines-webhook-55c9dd7446-ssvbw     1/1     Running       0          5m20s
+</code></pre></td></tr></table></div></div><p>用同样的方式可以完成 Tekton Chains 的安装。执行如下命令即可完成：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl apply --filename https://storage.googleapis.com/tekton-releases/chains/latest/release.yaml
+</code></pre></td></tr></table></div></div><p>安装完毕，会在 <code>tekton-chains</code> namespace 下面生成一个 pods：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-chains get pods -w
+NAME                                        READY   STATUS              RESTARTS   AGE
+tekton-chains-controller-5948c9fcc8-6gxk5   0/1     ContainerCreating   0          11s
+tekton-chains-controller-5948c9fcc8-6gxk5   1/1     Running             0          34s
+</code></pre></td></tr></table></div></div><h1 id=tekton-chains-的设置>Tekton Chains 的设置</h1><p>Tekton Chains 的设置有以下三个部分：</p><ul><li>为 Chains controller 添加认证（方便将签名后的镜像推送至 OCI 镜像仓库）</li><li>生成一个加密密钥，并配置 Chains 使用此密钥进行签名</li><li>其他的额外配置（以 <code>configmap</code> 的形式存储在 <code>tekton-chains</code> namespace 下面，主要包括 <code>TaskRun</code>、<code>OCI</code>、<code>KMS</code>、<code>Storage</code>等的一些配置）</li></ul><h2 id=支持的签名密钥>支持的签名密钥</h2><p>目前支持 x509、Cosign、KMS 以及处于实验阶段的 Keyless signing。本文选择使用 Cosing。</p><h3 id=cosign>cosign</h3><p><a href=https://github.com/sigstore/cosign>cosign</a>是一个开源项目，主要针对 OCS registry 做容器签名、验证和存储。目的是让签名成为无形的基础设施。</p><p>cosign 生成的 key 是以 <code>secret</code> 的方式存储在 Kubernetes 集群上的，在 <code>signing-secrets</code> namespace 下面，可以用如下的命令生成 <code>cosign.key</code> 和 <code>cosigh.pub</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ cosign generate-key-pair k8s://tekton-chains/signing-secrets
+</code></pre></td></tr></table></div></div><p>整个过程会让你输入一个 <code>password</code>，此 <code>password</code> 是用来解密 <code>cosign.key</code> 的。整个过程会在 <code>tekton-chains</code> namespace 下面生成一个名为 <code>signing-secrets</code> 的 <code>secret</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>ubectl -n tekton-chains get secret
+NAME                                   TYPE                                  DATA   AGE
+signing-secrets                        Opaque                                3      6d3h
+</code></pre></td></tr></table></div></div><p>可以看到里面有三条数据，其实就是 <code>cosign.key</code>、<code>cosign.pub</code>、<code>password</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ apiVersion: v1
+data:
+  cosign.key: LS0tLS1CRUdJTiBFTkNSWVBURUQgQ09TSUdOIFBSSVZBVEUgS0VZLS0tLS0KZXlKclpHWWlPbnNpYm1GdFpTSTZJbk5qY25sd2RDSXNJbkJoY21GdGN5STZleUpPSWpvek1qYzJPQ3dpY2lJNgpPQ3dpY0NJNk1YMHNJbk5oYkhRaU9pSllVeXRxYlhGYVJWQlVUVXhtYkhkbU9IVkljbTV4ZWpSVE5GVmhXblpSClJVOXVhR3AzU1RVME1XSnpQU0o5TENKamFYQm9aWElpT25zaWJtRnRaU0k2SW01aFkyd3ZjMlZqY21WMFltOTQKSWl3aWJtOXVZMlVpT2lKUlpUSmtVazF1UjJsSlVEZE5hVkEzTURkVloyTlBUR2c1VDFOU1NqUTRkaUo5TENKagphWEJvWlhKMFpYaDBJam9pYTJ4Q1drWXlRMGhLTkdSMVJIQmplQzlQYUVoQ05FbHdNM1ZIYzJWbVJFSnNSVEZ3CldsWmhkR0pOY0djNFlVTkhOM1JZVmxBNFIwdG1SWFU0Y2pFMlkyWnBkVmRKYmsxSVFUVnJNV0ZtUldobU5WVkwKY0dFcmIzSkVVell2UzJzcmFtVjFWMnQxZFdoeWJIWm1TRzFyWkV0MGMzVldWU3MzTkhWbVMzcFNaM0IxYzJWTApPSGN3ZWtWWWNYWkVVazV0T1dWbmRsZGliVTU2VFhsWFp6Vk5ZWGRzZW1oeVNUWlNXak4yUW5JNWFEWjJkMHBXCmNsVlRXVWd4ZFVOVU9HZFNXbGxUZEZaWmVGVkRRM0l3VkVFOVBTSjkKLS0tLS1FTkQgRU5DUllQVEVEIENPU0lHTiBQUklWQVRFIEtFWS0tLS0tCg==
+  cosign.password: cGFzc3cwcmQ=
+  cosign.pub: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFdzJVTy95V2VlVi90REcvczZDbDlPVzdWRktxUQpDaUgyZFhPVlc2N3dVV1hoSjhJTTEvSUo4Q1UwdmFGM3kvQ25kZDJUQ1Y5NmVCempxUEdxQlNOZDdBPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+immutable: true
+kind: Secret
+metadata:
+  name: signing-secrets
+  namespace: tekton-chains
+type: Opaque
+</code></pre></td></tr></table></div></div><h1 id=tekton-chain-的使用>Tekton Chain 的使用</h1><p>首先需要对 <code>artifacts.oci.storage</code> 参数做一些修改，目的是为了告诉 Chains 使用默认的 <code>tekton</code> artifact 并且禁用 <code>OCI</code> artifact。执行如下命令即可完成设置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl patch configmap chains-config -n tekton-chains -p=&#39;{&#34;data&#34;:{&#34;artifacts.oci.storage&#34;: &#34;&#34;}}&#39;
+</code></pre></td></tr></table></div></div><p>接下来使用 <a href=https://github.com/majinghe/tekton-chains-demo>https://github.com/majinghe/tekton-chains-demo</a> 中代码创建一个 <code>taksrun</code>，执行步骤都在此代码 repo 里面。这是一个拉取源代码并且构建容器镜像的 <code>taskrun</code>。创建 <code>taskrun</code> 的最后两步为执行如下命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-demo apply -f task.yaml
+task.tekton.dev/build-docker-image created
+
+kubectl -n tekton-demo apply -f taskrun.yaml
+taskrun.tekton.dev/build-docker-image-run created
+</code></pre></td></tr></table></div></div><p>查询 <code>taskrun</code>、<code>task</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ tkn -n tekton-demo task list
+NAME                 DESCRIPTION   AGE
+build-docker-image                 1 minute ago
+
+$ tkn -n tekton-demo tr list
+NAME                     STARTED        DURATION   STATUS
+build-docker-image-run   1 minute ago   ---        Running
+</code></pre></td></tr></table></div></div><p>可以看到名为 <code>build-docker-image-run</code> 的 <code>taskrun</code> 以及名为 <code>build-docker-image</code> 的 <code>task</code> 已经创建成功，并且在运行了(STATUS 为 <code>Running</code>）。可以在 <code>tekton-demo</code> namespace 下面看到相应的 pod</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-demo get pods -w
+NAME                         READY   STATUS     RESTARTS   AGE
+build-docker-image-run-pod   2/4     NotReady   0          2m47s
+build-docker-image-run-pod   1/4     NotReady   0          3m7s
+build-docker-image-run-pod   0/4     Completed   0          3m8s
+</code></pre></td></tr></table></div></div><p>可以看到 <code>taksrun</code> 已经执行结束（pod STATUS 为 <code>Completed</code>）。可以再次查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ tkn -n tekton-demo task list
+NAME                 DESCRIPTION   AGE
+build-docker-image                 4 minutes ago
+
+$ tkn -n tekton-demo tr list
+NAME                     STARTED         DURATION    STATUS
+build-docker-image-run   4 minutes ago   3 minutes   Succeeded
+</code></pre></td></tr></table></div></div><p>接下来就是 Tekton Chains 上场的时间了。在上述 <code>TaskRuns</code> 执行结束后，Chains 会对 <code>TaskRuns</code> 做一个快照，并将快照转换成标准的负载格式，然后将其进行签名，最后将签名结果进行存储（诸如存储在 <code>metadata.annotations</code> 中）。</p><p>将 <code>TaskRun</code> 的名称以环境变量的形式注入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ export TASKRUN=build-docker-image-run
+</code></pre></td></tr></table></div></div><p>获取 <code>TaskRun</code> 的具体信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-demo get taskrun $TASKRUN
+NAME                     SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+build-docker-image-run   True        Succeeded   18m         15m
+</code></pre></td></tr></table></div></div><p>接下来就可以从 <code>TaskRuns</code> 获取签名信息和负载了（signature 和 payload，以 base64 的形式存储在 annotations 中了）：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ export TASKRUN_UID=$(kubectl -n tekton-demo get taskrun $TASKRUN -o=json | jq -r &#39;.metadata.uid&#39;)
+$ kubectl -n tekton-demo get taskrun $TASKRUN -o=json | jq  -r &#34;.metadata.annotations[\&#34;chains.tekton.dev/payload-taskrun-$TASKRUN_UID\&#34;]&#34; | base64 --decode &gt; payload
+$ kubectl -n tekton-demo get taskrun $TASKRUN -o=json | jq  -r &#34;.metadata.annotations[\&#34;chains.tekton.dev/signature-taskrun-$TASKRUN_UID\&#34;]&#34; | base64 --decode &gt; signature
+</code></pre></td></tr></table></div></div><p>上述操作将 payload 和 signature 存储在了两个文件中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>-rw-r--r--  1 xiaomage  staff     3 Dec 18 20:14 payload
+-rw-r--r--  1 xiaomage  staff     3 Dec 18 20:14 signature
+</code></pre></td></tr></table></div></div><p>最后，使用 <code>cosign</code> 命令进行校验即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ cosign verify-blob --key cosign.pub --signature ./signature ./payload
+Verified OK
+</code></pre></td></tr></table></div></div><p>可以看到验证结果是成功的，证明此次 <code>TaskRun</code> 的构建过程没有遭受篡改。这就是 Tekton Chains 功能的核心原理。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>0001-01-01</span></p></div><footer class=post-footer><div class=post-tags><a href=/Cloud-Native-DevSecOps/tags/cloud-native/>Cloud Native</a>
+<a href=/Cloud-Native-DevSecOps/tags/supply-chain-security/>Supply Chain Security</a></div><nav class=post-nav><a class=prev href=/Cloud-Native-DevSecOps/cloud-native/jenkins-operator/><i class="iconfont icon-left"></i><span class="prev-text nav-default">Jenkins Operator —— Jenkins 在 Kubernetes 上打开的正确方式</span>
+<span class="prev-text nav-mobile">上一篇</span></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/Cloud-Native-DevSecOps/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2021<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/Cloud-Native-DevSecOps/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script></body></html>
