@@ -15,7 +15,7 @@ type: "post"
 
 # 关于 Tekton Chain
 
-Tekton Chain 是一个 Kubernetes CRD controller，可以用来帮助用户管理 Tekton 的 supply chain security（供应链安全）。简单点说，就是更安全的获取 CI/CD Pipeline 执行的元数据，以确保利用 Tekton 构建的 CI/CD Pipeline 执行流程是安全的。
+[Tekton Chain](https://github.com/tektoncd/chains) 是一个 Kubernetes CRD controller，可以用来帮助用户管理 Tekton 的 supply chain security（供应链安全）。简单点说，就是更安全的获取 CI/CD Pipeline 执行的元数据，以确保利用 Tekton 构建的 CI/CD Pipeline 执行流程是安全的。
 
 Tekton Chain 的工作原理是：观测 Tekton 集群中所有 `TaskRuns` 的执行。当 `TaskRuns` 完成执行，Chains 就会为其做一个快照，随后快照会被转换成一些标准的负载（payload）格式，并在将它们签名后进行存储。目前支持 x509、KMS 等对 `TaskRun` 以及 OCI 镜像进行签名。
 
@@ -67,8 +67,6 @@ Tekton Chains 的设置有以下三个部分：
 ## 支持的签名密钥
 
 目前支持 x509、Cosign、KMS 以及处于实验阶段的 Keyless signing。本文选择使用 Cosing。
-
-### cosign
 
 [cosign](https://github.com/sigstore/cosign)是一个开源项目，主要针对 OCS registry 做容器签名、验证和存储。目的是让签名成为无形的基础设施。
 
