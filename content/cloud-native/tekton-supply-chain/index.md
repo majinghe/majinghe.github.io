@@ -66,7 +66,7 @@ Tekton Chains 的设置有以下三个部分：
 
 ## 支持的签名密钥
 
-目前支持 x509、Cosign、KMS 以及处于实验阶段的 Keyless signing。本文选择使用 Cosing。
+目前支持 x509、Cosign、KMS 以及处于实验阶段的 Keyless signing。本文选择使用 Cosign。
 
 [cosign](https://github.com/sigstore/cosign)是一个开源项目，主要针对 OCS registry 做容器签名、验证和存储。目的是让签名成为无形的基础设施。
 
