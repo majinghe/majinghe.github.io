@@ -337,13 +337,13 @@ Total: 7 (CRITICAL: 7)
 ```
 可以看到 CI/CD 的扫描阶段成功扫描出 log4j 漏洞，ID 为 **`CVE-2021-44228`**、**`CVE-2021-45046`**。
 
-但是，在正常的 CI/CD Pipeline 中，有一个规则：**CI/CD Pipeline 中，任意阶段发生错误，都应该立即终止此次 Pipeline 终止，以防止有问题的代码被合并到主分之**。上述 CI/CD 扫描出了 log4j 漏洞，但是结果是成功的，下面在 Trivy 扫描的时候做一些修改，以避免这种情况：
+但是，在正常的 CI/CD Pipeline 中，有一个规则：**CI/CD Pipeline 中，任意阶段发生错误，都应该立即终止此次 Pipeline 终止，以防止有问题的代码被合并到主分支**。上述 CI/CD 扫描出了 log4j 漏洞，但是结果是成功的，下面在 Trivy 扫描的时候做一些修改，以避免这种情况：
 
 ```
 trivy image --exit-code 1
 ```
 
-**`--exit-code`**表示当检测出指定级别的漏洞时候，返回非 0 值，从而可以终止后续的流程。继续触发 `TaskRun`：
+**`--exit-code`** 表示当检测出指定级别的漏洞时候，返回非 0 值，从而可以终止后续的流程。继续触发 `TaskRun`：
 
 ```
 $ tkn -n tekton-scan-log4j2 tr list
