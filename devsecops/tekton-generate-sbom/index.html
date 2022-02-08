@@ -1,0 +1,541 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>用 Tekton 来生成软件物料清单（SBOM） - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="用 Tekton 来生成软件物料清单（SBOM）并嵌入到 CI/CD 中"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/tekton-generate-sbom/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="用 Tekton 来生成软件物料清单（SBOM）"><meta property="og:description" content="用 Tekton 来生成软件物料清单（SBOM）并嵌入到 CI/CD 中"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/tekton-generate-sbom/"><meta property="article:published_time" content="2022-02-08T13:05:42+08:00"><meta property="article:modified_time" content="2022-02-08T13:05:42+08:00"><meta itemprop=name content="用 Tekton 来生成软件物料清单（SBOM）"><meta itemprop=description content="用 Tekton 来生成软件物料清单（SBOM）并嵌入到 CI/CD 中"><meta itemprop=datePublished content="2022-02-08T13:05:42+08:00"><meta itemprop=dateModified content="2022-02-08T13:05:42+08:00"><meta itemprop=wordCount content="8635"><meta itemprop=keywords content="Software Supply Chain Security,SBOM,Tekton,"><meta name=twitter:card content="summary"><meta name=twitter:title content="用 Tekton 来生成软件物料清单（SBOM）"><meta name=twitter:description content="用 Tekton 来生成软件物料清单（SBOM）并嵌入到 CI/CD 中"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>用 Tekton 来生成软件物料清单（SBOM）</h1><div class=post-meta><span class=post-time>2022-02-08</span><div class=post-category><a href=/Cloud-Native-DevSecOps/categories/devops/>DevOps</a></div></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#sbom-的生成>SBOM 的生成</a></li><li><a href=#将-sbom-的生成嵌入到-cicd-中>将 SBOM 的生成嵌入到 CI/CD 中</a><ul><li><a href=#tekton>Tekton</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>近期 Linux 基金会发布了《软件物料清单（SBOM）与网络安全可读性》报告，里面介绍了软件物料清单（以下统称为 SBOM）在现在企业中的使用情况。可以查看<a href=https://linuxfoundation.org/wp-content/uploads/LFResearch_SBOM_Report_020422.pdf>报告全文</a>，也可以阅读本站的另外一篇博文<a href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/sbom-report/>《软件物料清单与网络安全可读性》调研报告解读</a>来看一下报告内容解读。</p><p>不管是从报告还是从现在的发展趋势看，软件供应链安全收到了越来越多企业或组织的重视，而 SBOM 被视为实践与实现软件供应链安全的重要手段。如何把 SBOM 的生成嵌入到软件交付的流程中（诸如 CI/CD）也是能够推广 SBOM 落地实践的一个有效手段，下面就演示如何将 SBOM 嵌入 DevOps 的 CI/CD Pipeline 中。</p><h2 id=sbom-的生成>SBOM 的生成</h2><p>SBOM 的生成有很多工具可以来实现，工具部分可以查看<a href=https://spdx.dev/resources/tools/>这儿</a>。本文以 Anchore 开源的 <a href=https://github.com/anchore/syft>syft</a> 为例来演示如何生成特定格式的 SBOM。</p><p>syft 的安装是非常方便的，可以根据不同的 OS 采用不同的安装方式。以 macOS 为例，用下面的命令即可完成安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ brew tap anchore/syft
+$ brew install syft
+</code></pre></td></tr></table></div></div><p>通过查看 <code>syft</code> 的版本来检查安装是否成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ syft version
+Application:   syft
+Version:       0.21.0
+BuildDate:     2021-08-23T18:25:25Z
+GitCommit:     ff828fbac211e1d9e993c309461bd9e0636fc2ec
+GitTreeState:  clean
+Platform:      darwin/amd64
+GoVersion:     go1.16.7
+Compiler:      gc
+</code></pre></td></tr></table></div></div><p>可以用 <code>syft --help</code> 来查看用法，比如 <code>alpine:latest</code> 为例，可以用如下命令查看该镜像所包含的软件组件信息：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ syft packages alpine:latest
+New version of syft is available: 0.36.0
+ ✔ Loaded image
+ ✔ Parsed image
+ ✔ Cataloged packages      [14 packages]
+
+NAME                    VERSION      TYPE
+alpine-baselayout       3.2.0-r16    apk
+alpine-keys             2.4-r0       apk
+apk-tools               2.12.7-r0    apk
+busybox                 1.33.1-r6    apk
+ca-certificates-bundle  20191127-r5  apk
+libc-utils              0.7.2-r3     apk
+libcrypto1.1            1.1.1l-r0    apk
+libretls                3.3.3p1-r2   apk
+libssl1.1               1.1.1l-r0    apk
+musl                    1.2.2-r3     apk
+musl-utils              1.2.2-r3     apk
+scanelf                 1.3.2-r0     apk
+ssl_client              1.33.1-r6    apk
+zlib                    1.2.11-r3    apk
+</code></pre></td></tr></table></div></div><p>可以看到上述命令列取出了 alpine:latest 中所包含的软件组建信息，包括组件名称、版本信息、类型等等。如果要生成某种格式的软件物料清单，则直接用 <code>-o</code> 指定要输出的特定格式即可。下面用一个 log4j 的案例来实际操作并分析。</p><p>下面以 Demo Repo <a href=https://github.com/majinghe/java-maven-hello-world-4-log4j2.git>https://github.com/majinghe/java-maven-hello-world-4-log4j2.git</a> 为例来展示，如何通过 SBOM 的方式发现软件组件中是否包含 log4j 漏洞。代码库的目录如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>.
+├── Dockerfile
+├── LICENSE
+├── README.md
+├── pom.xml
+└── src
+    └── main
+        └── java
+            └── com
+                └── example
+                    └── hello
+                        └── Hello.java
+</code></pre></td></tr></table></div></div><p>关于 log4j 的信息在 pom.xml 中有如下描述：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>&lt;dependencies&gt;
+        &lt;dependency&gt;
+        &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;
+        &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;
+        &lt;version&gt;2.11.0&lt;/version&gt;
+        &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre></td></tr></table></div></div><p>接下来可以直接用 docker build 命令来构建一个镜像，随后用 syft 列取该镜像中的软件组件信息：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ syft packages dllhb/tekton-sbom:0.0.1
+New version of syft is available: 0.36.0
+ ✔ Loaded image
+ ✔ Parsed image
+ ✔ Cataloged packages      [273 packages]
+
+NAME                               VERSION                         TYPE
+CodePointIM                        11.0.13                         java-archive
+FileChooserDemo                    11.0.13                         java-archive
+Font2DTest                         11.0.13                         java-archive
+J2Ddemo                            11.0.13                         java-archive
+
+.......... 太长了，只保留部分用户说明的内容..........
+
+libzstd1                           1.4.8+dfsg-2.1                  deb
+log4j-api                          2.11.0                          java-archive
+log4j-core                         2.11.0                          java-archive
+login                              1:4.8.1-1                       deb
+logsave                            1.46.2-2                        deb
+lsb-base                           11.1.0                          deb
+maven-aether-provider              3.0                             java-archive
+maven-archiver                     3.1.1                           java-archive
+</code></pre></td></tr></table></div></div><p>可以看到上面有与 log4j 有关的信息（log4j-api 和 log4j-core），版本是 2.11.0（根据 CVE 或 NVD 官网信息，2.11.0 是存在安全漏洞的）。当然，也可以直接生成不同格式的 SBOM，比如以 spdx（Software Package Data Exchange ）格式为例，可以用如下命令生成 SBOM：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ syft packages dllhb/tekton-sbom:0.0.1 -o spdx
+New version of syft is available: 0.36.0
+ ✔ Loaded image
+ ✔ Parsed image
+ ✔ Cataloged packages      [273 packages]
+SPDXVersion: SPDX-2.2
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: dllhb/tekton-sbom:0.0.1
+DocumentNamespace: https://anchore.com/syft/image/dllhb/tekton-sbom:0.0.1
+LicenseListVersion: 3.14
+Creator: Organization: Anchore, Inc
+Creator: Tool: syft-0.21.0
+Created: 2022-01-25T05:21:53Z
+
+.......... 太长了，只列取与 log4j 有关的信息 ..........
+
+##### Package: log4j-api
+
+PackageName: log4j-api
+SPDXID: SPDXRef-Package-java-archive-log4j-api
+PackageVersion: 2.11.0
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NONE
+PackageLicenseDeclared: NONE
+PackageCopyrightText: NOASSERTION
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j_api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j-api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j-api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j_api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j-api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j_api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j-api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j_api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_api:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_api:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j_api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j-api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j-api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j_api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_api:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-api:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_api:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: PACKAGE_MANAGER purl pkg:maven/org.apache.logging.log4j/log4j-api@2.11.0
+
+##### Package: log4j-core
+
+PackageName: log4j-core
+SPDXID: SPDXRef-Package-java-archive-log4j-core
+PackageVersion: 2.11.0
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NONE
+PackageLicenseDeclared: NONE
+PackageCopyrightText: NOASSERTION
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j_core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j-core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j-core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j_core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:core:2.11.0:*:*:*:*:maven:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:core:2.11.0:*:*:*:*:java:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j_core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j-core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j-core:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j_core:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️logging:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️apache:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:log4j:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️log4j:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3🅰️core:core:2.11.0:*:*:*:*:*:*:*
+ExternalRef: PACKAGE_MANAGER purl pkg:maven/org.apache.logging.log4j/log4j-core@2.11.0
+</code></pre></td></tr></table></div></div><p>上述 SBOM 是以 spdx 格式生成的，详细语法可以查阅<a href=https://spdx.dev/wp-content/uploads/sites/41/2017/12/spdx_onepager.pdf>SPDX 官网</a>或本站的另外一篇博文<a href=https://majinghe.github.io/Cloud-Native-DevSecOps/devsecops/sbom/>从 Anchore 软件供应链安全报告深挖 SBOM & SPDX</a>。</p><h2 id=将-sbom-的生成嵌入到-cicd-中>将 SBOM 的生成嵌入到 CI/CD 中</h2><p>那如何在每次软件代码有变更的时候及时生成 SBOM 呢？最好的办法就是将 SBOM 的生成直接嵌入到 CI/CD 流程中。下面演示如何将 SBOM 的生成嵌入到以 Tekton 为构建引擎的 CI/CD Pipeline 中。</p><h3 id=tekton>Tekton</h3><p>Tekton 是谷歌开源的一款云原生 CI/CD 构建工具，采用声明式的方式来完成 CI/CD Pipeline 的构建。架构示意图如下：</p><p><img src=images/tekton-arch.png alt=tekton-arch></p><p>Tekton 大体可以分为两大块：Event Handler & Pipeline Handler。Event Handler 主要是接受 SCM 系统的事件消息（如代码变更），然后做一些处理，获取必要的信息（代码提交者、提交内容等），然后把这些内容当作输入（Input）传递到 Pipeline Handler 部分，Pipeline Handler 会根据用于自定义的流程（如完成源码到镜像的转换）来完成整个 CI/CD 构建。</p><p>对于 Pipeline Handler 部分，有几个概念需要了解一下：</p><ul><li><p><strong>Step</strong>：Step 是 Tekton 最基本的操作单元，每一个 Step 就是用特定的构建工具来用特定的输入（Input）生成特定输出（Output）的过程，上一个 Step 的输出可以作为下一个 Step 的输入。Step 是在由用户提供的容器镜像拉起的容器里面完成工作的；</p></li><li><p><strong>Task</strong>：Task 是一系列 Step 的有序集合。Task 是在 Kubernetes pod 里面完成工作的；而 Step 是 pod 的单个容器中完成工作的；</p></li><li><p><strong>TaskRun</strong>：TaskRun 是 Task 的具体执行。每次创建一个 TaskRun 就会有一个指定的 Task 开始运行。TaskRun 可以单独运行，也可以被嵌入到 PipelineRun 中；</p></li><li><p><strong>Pipeline</strong>：Pipeline 是一系列 Task 的有序集合。Tekton 会收集所有的 tasks，将它们链接成一个有向无环图（directed acyclic graph，即 DAG），然后按顺序执行。Pipeline 的执行会生成一系列 pod。</p></li><li><p><strong>PipelineRun</strong>：PipelineRun 是 Pipeline 的具体执行。每次创建一个 PipelineRun 就会有一个指定的 Pipeline 开始运行。</p></li><li><p><strong>PipelineResource</strong>：PipelineResource，主要用来定义 Step 需要的输入（Input）以及相应的输出（Output）。</p></li></ul><p>下面就演示如何将 SBOM 的生成嵌入到 CI/CD 中。</p><p>下图是以 Tekton 为构建引擎的一个 CI/CD Pipeline，从源码提交到代码构建、镜像打包，再利用 ArgoCD 来实现 GitOps。在镜像构建之后做了一个 SBOM 的生成。当然，如果有需求，可以把生成的 SBOM 可以发送到 slack 或者和源代码托管平台集成起来，方便 SBOM 的查看。</p><p><img src=images/tekton-sbom.png alt=tekton-sbom></p><p>整个演示所用的 Tekton yaml Repo 可以在<a href=https://github.com/majinghe/tekton-chains-demo>这儿</a>找到。将 SBOM 的生成嵌入到 CI/CD 中，也比较简单，在 Tekton 的 <code>Task</code> 中增加一个 <code>Step</code>，如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: sbom-generate
+    image: anchore/syft:latest
+    env:
+    - name: DOCKER_CONFIG
+        value: /config
+    volumeMounts:
+    - mountPath: /config
+    name: registry-config
+    readOnly: true
+    args:
+    - dllhb/tekton-sbom:0.0.1
+    - -o
+    - spdx
+volumes:
+- name: registry-config
+secret:
+    secretName: registry-config
+</code></pre></td></tr></table></div></div><p>如果是 Private Registry，需要把 <code>config.json</code> 用 Secret 的形式创建好，然后以 <code>volume</code> 的形式挂在到 Tekton 的 pod 里面。</p><p>接着创建 <code>Task</code> 和 <code>TaskRun</code> 即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl create ns tekton-sbom
+$ kubectl -n tekton-sbom apply -f secret-credentials.yaml
+$ kubectl -n tekton-sbom apply -f sa.yaml
+$ kubectl -n tekton-sbom apply -f pipelineresource.yaml
+$ kubectl -n tekton-sbom apply -f task.yaml
+$ kubectl -n tekton-sbom apply -f taskrun.yaml
+</code></pre></td></tr></table></div></div><p>关于上述 yaml 文件的作用以及内容可以在<a href=https://github.com/majinghe/tekton-chains-demo>Tekton 使用 Repo</a>查阅。</p><p>最后可以查看 <code>Task</code> 和 <code>TaksRun</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ tkn -n tekton-sbom t list
+NAME                 DESCRIPTION   AGE
+build-docker-image                 2 hours ago
+
+$ tkn -n tekton-sbom tr list
+NAME                     STARTED       DURATION     STATUS
+build-docker-image-run   2 hours ago   10 minutes   Succeeded
+</code></pre></td></tr></table></div></div><p>可以看到 TaskRun（简写为 tr）的 STATUS 为 Succeeded，查看 <code>tekton-sbom</code> namespace 下面的pod：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-sbom get pods
+NAME                         READY   STATUS             RESTARTS   AGE
+build-docker-image-run-pod   0/4     Completed          0          169m
+</code></pre></td></tr></table></div></div><p>可以查看 <code>log</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-sbom logs -f build-docker-image-run-pod -c step-sbom-generate
+</code></pre></td></tr></table></div></div><p>可以查看到与 SBOM 章节中相同的内容，由于内容过长，不在这儿再次赘述。</p><p>将 SBOM 的生成嵌入到 CI/CD 中，则每次代码变更都会生成新的 SBOM，能够保证 SBOM 的准确性。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-02-08</span></p></div><footer class=post-footer><div class=post-tags><a href=/Cloud-Native-DevSecOps/tags/software-supply-chain-security/>Software Supply Chain Security</a>
+<a href=/Cloud-Native-DevSecOps/tags/sbom/>SBOM</a>
+<a href=/Cloud-Native-DevSecOps/tags/tekton/>Tekton</a></div><nav class=post-nav><a class=next href=/Cloud-Native-DevSecOps/devsecops/sbom-report/><span class="next-text nav-default">《软件物料清单与网络安全可读性》调研报告解读</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/Cloud-Native-DevSecOps/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/Cloud-Native-DevSecOps/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script></body></html>
