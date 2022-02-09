@@ -316,6 +316,8 @@ Tekton 大体可以分为两大块：Event Handler & Pipeline Handler。Event Ha
 
 下面就演示如何将 SBOM 的生成嵌入到 CI/CD 中。
 
+### 将 SBOM 的生成嵌入 Tekton 的 CI/CD 中
+
 下图是以 Tekton 为构建引擎的一个 CI/CD Pipeline，从源码提交到代码构建、镜像打包，再利用 ArgoCD 来实现 GitOps。在镜像构建之后做了一个 SBOM 的生成。当然，如果有需求，可以把生成的 SBOM 可以发送到 slack 或者和源代码托管平台集成起来，方便 SBOM 的查看。
 
 ![tekton-sbom](images/tekton-sbom.png)
