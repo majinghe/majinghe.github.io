@@ -10,12 +10,12 @@ type: "post"
 
 
 <p align="center">
-<img src="images/tekton_chains-color.png" alt="Tekton Chains logo"></img>
+<img src="images/argocd-sops.jpg" alt="Tekton Chains logo"></img>
 </p>
 
 # GitOps
 
-GitOps 是 2017 年有 weaveworks 公司根据自身实践经验提出的一种云原生应用程序（其实也包括基础设施）部署与管理的模式。其区别于传统的基于 Push 的应用程序部署模式，而是用 Pull 的方式来进行的。GitOps 有以下几个核心要素：
+GitOps 是 2017 年由 weaveworks 公司根据自身实践经验提出的一种云原生应用程序（其实也包括基础设施）部署与管理的模式。其区别于传统的基于 Push 的应用程序部署模式，而是用 Pull 的方式来进行的。GitOps 有以下几个核心要素：
 
 * Git 为单一可信源（Git is the single source of truth）
 * 一切皆代码（everything is code）
@@ -155,7 +155,7 @@ Compression: Uncompressed, ZIP, ZLIB, BZIP2
 
 # KSOPS
 
-[KSOPS](https://github.com/viaduct-ai/kustomize-sops)是一个灵活的 Kustomize 插件，主要用与 SOPS 加密资源的处理。KSOPS 是由 Viadut 公司开发的，这是一家利用 AI 技术来为交通工具提供可靠安全的应用程序的公司。他们在使用 GitOps 来管理 Kubernetes 资源，但是他们无法找到一种能够兼容他们技术栈的方法来很好的管理敏感信息，因此他们开发了这个插件来和 Argo CD 进行集成，从而能够以更安全的方式来在 GitOps 模式下管理敏感信息。
+[KSOPS](https://github.com/viaduct-ai/kustomize-sops)是一个灵活的 Kustomize 插件，主要用于 SOPS 加密资源的处理。KSOPS 是由 Viadut 公司开发的，这是一家利用 AI 技术来为交通工具提供可靠安全的应用程序的公司。他们在使用 GitOps 来管理 Kubernetes 资源，但是他们无法找到一种能够兼容他们技术栈的方法来很好的管理敏感信息，因此他们开发了这个插件来和 Argo CD 进行集成，从而能够以更安全的方式来在 GitOps 模式下管理敏感信息。
 
 下面的示例演示了 KSPOS 如何将 Kustomize、sops、gpg 进行结合的。
 
