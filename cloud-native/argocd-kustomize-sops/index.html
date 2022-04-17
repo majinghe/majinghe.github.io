@@ -1,0 +1,195 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 Sops 可以更好的处理敏感信息，让一切皆代码的 GitOps 实践变得更加容易"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/Cloud-Native-DevSecOps/cloud-native/argocd-kustomize-sops/><link rel=apple-touch-icon sizes=180x180 href=/Cloud-Native-DevSecOps/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/Cloud-Native-DevSecOps/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/Cloud-Native-DevSecOps/favicon-16x16.png><link rel=manifest href=/Cloud-Native-DevSecOps/manifest.json><link rel=mask-icon href=/Cloud-Native-DevSecOps/safari-pinned-tab.svg color=#5bbad5><link href=/Cloud-Native-DevSecOps/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps"><meta property="og:description" content="使用 Sops 可以更好的处理敏感信息，让一切皆代码的 GitOps 实践变得更加容易"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/Cloud-Native-DevSecOps/cloud-native/argocd-kustomize-sops/"><meta property="article:published_time" content="2022-04-16T13:05:42+08:00"><meta property="article:modified_time" content="2022-04-16T13:05:42+08:00"><meta itemprop=name content="ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps"><meta itemprop=description content="使用 Sops 可以更好的处理敏感信息，让一切皆代码的 GitOps 实践变得更加容易"><meta itemprop=datePublished content="2022-04-16T13:05:42+08:00"><meta itemprop=dateModified content="2022-04-16T13:05:42+08:00"><meta itemprop=wordCount content="2317"><meta itemprop=keywords content="ArgoCD,Kustomize,Sops,"><meta name=twitter:card content="summary"><meta name=twitter:title content="ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps"><meta name=twitter:description content="使用 Sops 可以更好的处理敏感信息，让一切皆代码的 GitOps 实践变得更加容易"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/Cloud-Native-DevSecOps/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/Cloud-Native-DevSecOps/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/Cloud-Native-DevSecOps/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/Cloud-Native-DevSecOps/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps</h1><div class=post-meta><span class=post-time>2022-04-16</span><div class=post-category><a href=/Cloud-Native-DevSecOps/categories/gitops/>GitOps</a></div></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#gitops>GitOps</a></li><li><a href=#kustomize>Kustomize</a></li><li><a href=#argo-cd>Argo CD</a></li><li><a href=#sops>SOPS</a><ul><li><a href=#pgp-vs-gpg>PGP vs GPG</a></li><li><a href=#sops-with-gpg>SOPS with GPG</a></li></ul></li><li><a href=#ksops>KSOPS</a><ul><li><a href=#通过环境变量>通过环境变量</a></li><li><a href=#通过-sopsyaml-文件>通过 .sops.yaml 文件</a></li></ul></li><li><a href=#argo-cd--kustomize--sops-的使用>Argo CD + Kustomize + SOPS 的使用</a></li></ul></nav></div></div><div class=post-content><p align=center><img src=images/argocd-sops.jpg alt="Tekton Chains logo"></img></p><h1 id=gitops>GitOps</h1><p>GitOps 是 2017 年由 weaveworks 公司根据自身实践经验提出的一种云原生应用程序（其实也包括基础设施）部署与管理的模式。其区别于传统的基于 Push 的应用程序部署模式，而是用 Pull 的方式来进行的。GitOps 有以下几个核心要素：</p><ul><li>Git 为单一可信源（Git is the single source of truth）</li><li>一切皆代码（everything is code）</li><li>以声明式系统为基座（based on declarative）</li></ul><p>关于 GitOps 的更多内容可以查看过往的文章<a href=../../devsecops/gitops/>GOTC 纪实｜利用 Tekton + ArgoCD 打造云原生 GitSecOps</a>。</p><h1 id=kustomize>Kustomize</h1><p><a href=https://kustomize.io/>Kustomize</a>是一个 Kubernetes 原生的配置管理工具。以一种无模版（对比 Helm）的方式来定制化应用程序的配置，从而简化了云原生应用程序的使用。目前已经内置到 <code>kubectl</code> 中了。</p><p>Kustomize 的使用非常方便，<strong>核心理念是通过 kustomization.yaml 文件来管理云原生应用程序所对应的 Kubernetes 资源</strong>。并且可以通过 <code>overlay</code> 的方式来完成多层级的资源配置管理，很方便的实现一套配置文件对应多个不同环境。</p><p>比如下面的例子，整个配置文件的目录结构为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>.
+├── base
+│   ├── config.yaml
+│   ├── jenkins-rbac.yaml
+│   ├── jenkins.yaml
+│   ├── jenkins_crd.yaml
+│   ├── jenkins_operator.yaml
+│   ├── kops-secret.yaml
+│   ├── kustomization.yaml
+│   └── secret
+│       └── credentials.secret.yaml
+└── overlays
+    ├── dev
+    │   ├── ingress.yaml
+    │   ├── jenkins.yaml
+    │   ├── kops-secret.yaml
+    │   ├── kustomization.yaml
+    │   └── secret
+    │       └── secret.tls.yaml
+    ├── prod
+    │   ├── ingress.yaml
+    │   ├── jenkins.yaml
+    │   ├── kops-secret.yaml
+    │   ├── kustomization.yaml
+    │   └── secret
+    │       └── secret.tls.yaml
+    └── svt
+        ├── ingress.yaml
+        ├── jenkins.yaml
+        ├── kops-secret.yaml
+        ├── kustomization.yaml
+        └── secret
+            └── secret.tls.yaml
+</code></pre></td></tr></table></div></div><p>上述配置文件的目录层级展示了如何使用 Kustomize 来对三套环境（dev、svt、prod）的配置文件进行编排管理。其中 base 目录下面是多个环境共同的资源配置，而 dev、svt、prod 目录下则是每个环境所特有的配置资源。在最终使用时候，把“个性”和“共性”糅合在一起，就是最终针对某个环境的所有配置资源。</p><blockquote><p>上述目录结构是使用 jenkins-opeator 来根据不同环境，迅速构建起一个 jenkins 示例的 kustomize 使用方法，代码仓库位于<a href=https://github.com/majinghe/jenkins-operator>这儿</a>。</p></blockquote><h1 id=argo-cd>Argo CD</h1><p><a href=https://github.com/argoproj/argo-cd/>Argo CD</a>是一个声明式的工具，主要针对 Kubernetes 来做基于 GitOps 的持续交付。</p><p>Argo CD 的所有组件都是以 controller 的形式运行的，这些组件会监控应用程序的当前状态，并和期望状态（定义在配置文件中，而配置文件存储在 Git 上，这正是 GitOps 的精髓所在）相比较，如果发生偏差就进行自动校正（同步）。Argo CD 的架构图如下：</p><p align=center><img src=images/argocd_architecture.png alt="argocd architecture"></img></p><p>Argo CD 的安装非常方便，只需要如下两个命令即可快速拉起一个 Argo CD 环境：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl create namespace argocd
+$ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+</code></pre></td></tr></table></div></div><p>一个正常运行的 Argo CD 环境由以下组件构成：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n argocd get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+argocd-application-controller-0                    1/1     Running   0          24h
+argocd-applicationset-controller-74b689bfd-dnc7m   1/1     Running   0          24h
+argocd-dex-server-7678b55c7b-gzj5h                 1/1     Running   0          24h
+argocd-notifications-controller-7b888bc548-hdpjj   1/1     Running   0          24h
+argocd-redis-584f4df7d7-2m8ms                      1/1     Running   0          24h
+argocd-repo-server-76f7f567d8-cg9vj                1/1     Running   0          24h
+argocd-server-86d75f9788-lp78r                     1/1     Running   0          24h
+</code></pre></td></tr></table></div></div><p>可以看到有多个组件，相关组件的作用，可以查看 <a href=https://argo-cd.readthedocs.io/en/stable/>Argo CD 官网文档</a>。</p><h1 id=sops>SOPS</h1><p><a href=https://github.com/mozilla/sops>SOPS: Secrets OPerationS</a>是一个针对加密文件的编辑器，支持多种文件格式，诸如 YAML、JSON、ENV、INI 以及二进制文件，支持的加密方式有 AWS KMS、GCP KMS、Azure Key Vault 以及 PGP 等。</p><p>sops 的安装也是非常方便的，安装方式可以在 <a href=https://github.com/mozilla/sops>sops GitHub</a>上找到，安装完成后可以用 <code>--version</code> 来查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ sops --version
+sops 3.7.1
+</code></pre></td></tr></table></div></div><p>sops 支持 PGP 和 GPG，本文使用 GPG，演示之前先来学习一个冷知识：GPG 与 GPG 的区别。</p><h2 id=pgp-vs-gpg>PGP vs GPG</h2><p>PGP 是 “Pretty Good Privacy” 的缩写，它是由 Phil Zimmermann 开发的，最早是基于 GPL（Gnu Public License）协议来发布的，但是后来受限于美国相关法律带来的一些问题，PGP 变成了专有软件。基于此，GPG 出现了。</p><p>GPG 是 “Gnu Privacy Guard“ 的缩写，可以理解为 PGP 的一个升级或重新，它使用了和 PGP 不同的算法，而且是开源的。</p><h2 id=sops-with-gpg>SOPS with GPG</h2><p>可以根据 <a href=https://gpgtools.org/>GPG 官网</a>来完成 GPG 的安装，依旧用 <code>--version</code> 来验证安装是否成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ gpg --version
+gpg (GnuPG/MacGPG2) 2.2.27
+libgcrypt 1.8.7
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GNU GPL-3.0-or-later &lt;https://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Home: /Users/xiaomage/.gnupg
+Supported algorithms:
+Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA
+Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256, TWOFISH,
+        CAMELLIA128, CAMELLIA192, CAMELLIA256
+Hash: SHA1, RIPEMD160, SHA256, SHA384, SHA512, SHA224
+Compression: Uncompressed, ZIP, ZLIB, BZIP2
+</code></pre></td></tr></table></div></div><p>接下来就可以将 Argo CD、Kustomize 以及 SOPS 进行糅合了。</p><p>首先将 Kustomize 和 SOPS 做一个糅合，目的是为了在使用 Kustomize 进行 yaml 文件编排的时候用 SOPS 来完成敏感信息的管理。</p><h1 id=ksops>KSOPS</h1><p><a href=https://github.com/viaduct-ai/kustomize-sops>KSOPS</a>是一个灵活的 Kustomize 插件，主要用于 SOPS 加密资源的处理。KSOPS 是由 Viadut 公司开发的，这是一家利用 AI 技术来为交通工具提供可靠安全的应用程序的公司。他们在使用 GitOps 来管理 Kubernetes 资源，但是他们无法找到一种能够兼容他们技术栈的方法来很好的管理敏感信息，因此他们开发了这个插件来和 Argo CD 进行集成，从而能够以更安全的方式来在 GitOps 模式下管理敏感信息。</p><p>下面的示例演示了 KSPOS 如何将 Kustomize、sops、gpg 进行结合的。</p><p>首先需要有一对 gpg key，生成方式可以参考过往文章<a href=../../devsecops/secret-encrypt.md>Kubernetes secrets 加密的几种方式</a>。可以用 <code>gpg -k</code> 列取出可用的 key：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ gpg -k
+----------------------------------
+pub   rsa4096 2021-08-03 [SC] [expires: 2024-08-02]
+      852CD8F0188F5521200DAD49D5104ECDA82480F1
+uid           [ultimate] xiaomage (GitOps) &lt;devops008@sina.com&gt;
+sub   rsa4096 2021-08-03 [E] [expires: 2024-08-02]
+</code></pre></td></tr></table></div></div><p>上面的 <code>852CD8F0188F5521200DAD49D5104ECDA82480F1</code> 就是接下来要用到的 gpg 指纹信息。可以通过两种方式来使用此指纹信息：</p><h2 id=通过环境变量>通过环境变量</h2><p>可以将上述指纹信息赋值给 <code>SOPS_PGP_FP</code>，然后以环境变量的形式注入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ export SOPS_PGP_FP=&#34;852CD8F0188F5521200DAD49D5104ECDA82480F1&#34;
+</code></pre></td></tr></table></div></div><h2 id=通过-sopsyaml-文件>通过 .sops.yaml 文件</h2><p>在 .sops.yaml 文件中使用上述指纹信息，格式如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>creation_rules:
+  - encrypted_regex: &#34;^(data|stringData)$&#34;
+    pgp: &#34;852CD8F0188F5521200DAD49D5104ECDA82480F1&#34;
+</code></pre></td></tr></table></div></div><blockquote><p><code>encrypted_regex</code> 是用正则表达式来指定需要加密的敏感信息的 <code>key</code>。</p></blockquote><p>比如，有如下 Kubernetes Secret 信息：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>cat &lt;&lt;EOF &gt; secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  username: eGlhb21hZ2U=
+  password: cGFzc3cwcmRAMzE4
+</code></pre></td></tr></table></div></div><p>在选用上述任意一种方式指定 gpg 指纹（实际是指定了用来加密的 gpg public key）后，则可以直接使用 <code>sops -e</code> 来加密此文件。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ sops -e secret.yaml &gt; secret.enc.yaml
+</code></pre></td></tr></table></div></div><p>接着需要定义一个 <code>ksops</code> 资源：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ cat &lt;&lt;EOF &gt; secret-ksops.yaml
+apiVersion: viaduct.ai/v1
+kind: ksops
+metadata:
+  name: ksops-demo
+files:
+  - ./secret.enc.yaml
+</code></pre></td></tr></table></div></div><p>在 Kustomize 的 <code>kustomization.yaml</code> 文件中通过添加 <code>generators</code> 参数即可将 <code>ksops</code> 资源添加并使用：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>generators:
+  - ./secret-generator.yaml
+</code></pre></td></tr></table></div></div><p>最终，使用如下命令即可构建渲染 yaml 清单文件了：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kustomize build --enable-alpha-plugins .
+</code></pre></td></tr></table></div></div><h1 id=argo-cd--kustomize--sops-的使用>Argo CD + Kustomize + SOPS 的使用</h1><p>Argo CD 的默认安装是不支持 Kustomize + SOPS（也就是 KSOPS）的，但是在经过简单的配置修改后即可使用（目前已在 Argo CD 的 1.8.x，2.0.0，2.3.3 版本验证过）。使用方式可以参看<a href=https://github.com/majinghe/argocd-sops>这个 GitHub Repo</a>。</p><p>整个演示 Demo 如下：</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-04-16</span></p></div><footer class=post-footer><div class=post-tags><a href=/Cloud-Native-DevSecOps/tags/argocd/>ArgoCD</a>
+<a href=/Cloud-Native-DevSecOps/tags/kustomize/>Kustomize</a>
+<a href=/Cloud-Native-DevSecOps/tags/sops/>Sops</a></div><nav class=post-nav><a class=next href=/Cloud-Native-DevSecOps/cloud-native/tekton-supply-chain/><span class="next-text nav-default">Tekton Chains 是如何保证 Tekton 供应链安全的</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/Cloud-Native-DevSecOps/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/Cloud-Native-DevSecOps/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script></body></html>
