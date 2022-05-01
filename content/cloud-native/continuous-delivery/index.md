@@ -4,7 +4,7 @@ description: "整理了一些在 CNCF 与 CDF 中与云原生持续交付相关�
 author: 马景贺（小马哥）
 categories: ["Cloud Native"]
 tags: ["Cloud Native","Continuous Delivery"]
-date: 2022-04-30T13:05:42+08:00
+date: 2022-05-01T13:05:42+08:00
 type: "post"
 ---
 
