@@ -37,7 +37,7 @@ Argo 是在 2020 年 4 月 7 日被 CNCF 接受的。Argo 是在 Kubernetes 上�
 * **Argo Rollouts**： 主要用来实现金丝雀和蓝绿部署等部署策略，有对应的 [官网](https://argoproj.github.io/argo-rollouts/)和 [GitHub Repo](https://github.com/argoproj/argo-rollouts)。目前在 GitHub 上有 1.5k star，最新版本为 1.2.0；
 * **Argo Events**： 主要是针对 Kubernetes 进行基于事件的依赖管理，有对应的[官网](https://argoproj.github.io/argo-events/)和 [GitHub Repo](https://github.com/argoproj/argo-events)。目前在 GitHub 上有 1.5k star，最新版本为 1.6.3；
 
-使用方法可以参考过往文章[ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps](../../cloud-native/argocd-kustomize-sops/index.md)、[GOTC 纪实｜利用 Tekton + ArgoCD 打造云原生 GitSecOps](../../devsecops/gitops/index.md)。
+使用方法可以参考过往文章[ArgoCD + Kustomize + Sops，以更安全的方式实践 GitOps](../../cloud-native/argocd-kustomize-sops/)、[GOTC 纪实｜利用 Tekton + ArgoCD 打造云原生 GitSecOps](../../devsecops/gitops/)。
 
 ### Flagger
 
@@ -141,7 +141,7 @@ Tekton 是一个灵活且强大的开源框架，主要用来构建 CI/CD 系统
 
 对应有[官网](https://tekton.dev/)和 [GitHub Repo](https://github.com/tektoncd)。GitHub 上有多个 Repo，常用的 Pipeline 有 7.1k star，最新版本为 0.35.0；Triggers 有 411 star，最新版本为 0.19.1。
 
-使用方法可以参考过往文章[用 Tekton 来生成软件物料清单（SBOM）](../../devsecops/tekton-generate-sbom/index.md)、[用 Tekton 来检测 Apache Log4j 漏洞](../../devsecops/tekton-log4j2/index.md)、[Tekton Chains 是如何保证 Tekton 供应链安全的](../../cloud-native/tekton-supply-chain/index.md)。
+使用方法可以参考过往文章[用 Tekton 来生成软件物料清单（SBOM）](../../devsecops/tekton-generate-sbom/)、[用 Tekton 来检测 Apache Log4j 漏洞](../../devsecops/tekton-log4j2/)、[Tekton Chains 是如何保证 Tekton 供应链安全的](../../cloud-native/tekton-supply-chain/)。
 
 ## Spinnaker
 
