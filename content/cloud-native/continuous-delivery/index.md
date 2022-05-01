@@ -92,7 +92,7 @@ Keptn 是在 2020 年 6 月 23 日成为 CNCF 项目的。Keptn 是一个基于�
 
 OpenGitOps 是一套开源标准、最佳实践以及以社区为中心的教育，主要目的是帮助企业采用结构化、标准化的方法来实践 GitOps。OpenGitOps 目前是由 CNCF 的 GitOps WG（工作组）来指导，这个工作组在 CNCF App Delivery TAG 下面。这是一个面向公众开放的工作组，任何人都可以参与进去。
 
-对应有[官网](https://opengitops.dev/)和 [GitHub Repo](https://github.com/open-gitops/），目前有多个文档、项目和网站等多个 Repo。
+对应有[官网](https://opengitops.dev/)和 [GitHub Repo](https://github.com/open-gitops/)，目前有多个文档、项目和网站等多个 Repo。
 
 ### OpenKruise
 

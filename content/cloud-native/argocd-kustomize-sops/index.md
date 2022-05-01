@@ -242,8 +242,4 @@ $ kustomize build --enable-alpha-plugins .
 
 Argo CD 的默认安装是不支持 Kustomize + SOPS（也就是 KSOPS）的，但是在经过简单的配置修改后即可使用（目前已在 Argo CD 的 1.8.x，2.0.0，2.3.3 版本验证过）。使用方式可以参看[这个 GitHub Repo](https://github.com/majinghe/argocd-sops)。
 
-整个演示 Demo 如下：
-
-```
-<iframe src="//player.bilibili.com/player.html?aid=720018804&bvid=BV1qQ4y1Y7V2&cid=395043780&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"  width="700px" height="472px"> </iframe>
-```
+整个演示 Demo 在 B 站上，链接为：https://www.bilibili.com/video/BV1TL4y1V7oB/。
