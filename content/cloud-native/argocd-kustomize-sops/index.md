@@ -244,3 +244,6 @@ Argo CD 的默认安装是不支持 Kustomize + SOPS（也就是 KSOPS）的，�
 
 整个演示 Demo 如下：
 
+```
+<iframe src="//player.bilibili.com/player.html?aid=720018804&bvid=BV1qQ4y1Y7V2&cid=395043780&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"  width="700px" height="472px"> </iframe>
+```
