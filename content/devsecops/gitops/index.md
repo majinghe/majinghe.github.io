@@ -2,6 +2,7 @@
 title: "GOTC 纪实｜利用 Tekton + ArgoCD 打造云原生 GitSecOps"
 description: "GitOps 是云原生应用部署的正确方式"
 author: 马景贺（小马哥）
+image: "images/gotc-ospo.jpg"
 categories: ["GitOps"]
 tags: ["Tekton","ArgoCD"]
 date: 2021-07-13T13:05:42+08:00

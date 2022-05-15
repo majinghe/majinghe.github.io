@@ -262,6 +262,8 @@ NAME                 DESCRIPTION   AGE
 build-docker-image                 4 minutes ago
 ```
 
+> 整个演示过程的 Tekton 代码在[这个 tekton cosign demo GitHub Repo 中](https://github.com/majinghe/tekton-demo/tree/main/cosign-demo)。
+
 如果查看 `TaskRun` 的内容，可以清晰的看到所有 Step 的状态：
 
 ```
