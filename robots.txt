@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://majinghe.github.io/Cloud-Native-DevSecOps/sitemap.xml
+Sitemap: https://majinghe.github.io/sitemap.xml
