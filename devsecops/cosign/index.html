@@ -120,7 +120,7 @@ The following checks were performed on each of these signatures:
 Error: no matching signatures:
 
 main.go:46: error during command execution: no matching signatures:
-</code></pre></td></tr></table></div></div><p>可以看到报错了，提示无法找到相匹配的签名。说明镜像有被篡改过，侧面反应了 cosign 是如何通过镜像签名来保证镜像安全的。</p><h2 id=将镜像签名嵌入-tekton-cicd>将镜像签名嵌入 Tekton CI/CD</h2><p>只需要在 Tekton CI/CD 中添加一个额外的 <code>Step</code> 即可完成镜像的签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><p>可以看到报错了，提示无法找到相匹配的签名。说明镜像有被篡改过，侧面反映了 cosign 是如何通过镜像签名来保证镜像安全的。</p><h2 id=将镜像签名嵌入-tekton-cicd>将镜像签名嵌入 Tekton CI/CD</h2><p>只需要在 Tekton CI/CD 中添加一个额外的 <code>Step</code> 即可完成镜像的签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -150,7 +150,7 @@ main.go:46: error during command execution: no matching signatures:
     - name: cosign-pub
       secret:
         secretName: cosign-pub
-</code></pre></td></tr></table></div></div><p>此外，还可以将镜像构建、镜像扫描、镜像签名和镜像验证都集成都 Tekton CI/CD 中，来构建 DevSecOps CI/CD：</p><p><img src=images/image-devsecops.png alt=image-sign-verify></p><p>整个流程中 Tekton CI/CD 代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><p>此外，还可以将镜像构建、镜像扫描、镜像签名和镜像验证都集成到 Tekton CI/CD 中，来构建 DevSecOps CI/CD：</p><p><img src=images/image-devsecops.png alt=image-sign-verify></p><p>整个流程中 Tekton CI/CD 代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -292,7 +292,7 @@ build-docker-image-run   3 minutes ago   1 minute   Succeeded
 tkn -n tekton-cosign t list
 NAME                 DESCRIPTION   AGE
 build-docker-image                 4 minutes ago
-</code></pre></td></tr></table></div></div><blockquote><p>整个演示过程的 Tekton 代码在<a href=https://github.com/majinghe/tekton-demo/tree/main/cosign-demo>这个 tekton cosign demo GitHub Repo 中</a>。</p></blockquote><p>如果查看 <code>TaskRun</code> 的内容，可以清晰的看到所有 Step 的状态：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><blockquote><p>整个演示过程的 Tekton 代码在<a href=https://github.com/majinghe/tekton-demo/tree/main/cosign-demo>这个 tekton cosign demo GitHub Repo 中</a>。</p></blockquote><p>如果查看 <code>TaskRun</code> 的内容，可以清晰地看到所有 Step 的状态：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
