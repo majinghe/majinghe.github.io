@@ -141,7 +141,7 @@ Error: no matching signatures:
 main.go:46: error during command execution: no matching signatures:
 ```
 
-可以看到报错了，提示无法找到相匹配的签名。说明镜像有被篡改过，侧面反应了 cosign 是如何通过镜像签名来保证镜像安全的。
+可以看到报错了，提示无法找到相匹配的签名。说明镜像有被篡改过，侧面反映了 cosign 是如何通过镜像签名来保证镜像安全的。
 
 
 ## 将镜像签名嵌入 Tekton CI/CD
@@ -165,7 +165,7 @@ main.go:46: error during command execution: no matching signatures:
       secret:
         secretName: cosign-pub
 ```
-此外，还可以将镜像构建、镜像扫描、镜像签名和镜像验证都集成都 Tekton CI/CD 中，来构建 DevSecOps CI/CD：
+此外，还可以将镜像构建、镜像扫描、镜像签名和镜像验证都集成到 Tekton CI/CD 中，来构建 DevSecOps CI/CD：
 
 ![image-sign-verify](images/image-devsecops.png)
 
@@ -264,7 +264,7 @@ build-docker-image                 4 minutes ago
 
 > 整个演示过程的 Tekton 代码在[这个 tekton cosign demo GitHub Repo 中](https://github.com/majinghe/tekton-demo/tree/main/cosign-demo)。
 
-如果查看 `TaskRun` 的内容，可以清晰的看到所有 Step 的状态：
+如果查看 `TaskRun` 的内容，可以清晰地看到所有 Step 的状态：
 
 ```
 $ tkn -n tekton-cosign tr describe build-docker-image-run
