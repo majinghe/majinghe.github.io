@@ -1,0 +1,674 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>使用 KICS 来保障基础设施即代码（IaC）的安全 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="KICS 能够对 IaC 进行安全扫描，及时发现存在的安全风险"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/devsecops/kics/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="使用 KICS 来保障基础设施即代码（IaC）的安全"><meta property="og:description" content="KICS 能够对 IaC 进行安全扫描，及时发现存在的安全风险"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/devsecops/kics/"><meta property="article:published_time" content="2022-07-21T13:05:42+08:00"><meta property="article:modified_time" content="2022-07-21T13:05:42+08:00"><meta itemprop=name content="使用 KICS 来保障基础设施即代码（IaC）的安全"><meta itemprop=description content="KICS 能够对 IaC 进行安全扫描，及时发现存在的安全风险"><meta itemprop=datePublished content="2022-07-21T13:05:42+08:00"><meta itemprop=dateModified content="2022-07-21T13:05:42+08:00"><meta itemprop=wordCount content="2397"><meta itemprop=keywords content="Security,KICS,IaC,"><meta name=twitter:card content="summary"><meta name=twitter:title content="使用 KICS 来保障基础设施即代码（IaC）的安全"><meta name=twitter:description content="KICS 能够对 IaC 进行安全扫描，及时发现存在的安全风险"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>使用 KICS 来保障基础设施即代码（IaC）的安全</h1><div class=post-meta><span class=post-time>2022-07-21</span><div class=post-category><a href=/categories/devsecops/>DevSecOps</a></div><span class=more-meta>约 2397 字</span>
+<span class=more-meta>预计阅读 5 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#关于-kics>关于 KICS</a><ul><li><a href=#kics-的原理>KICS 的原理</a></li></ul></li><li><a href=#使用-kics-扫描-iac>使用 KICS 扫描 IaC</a><ul><li><a href=#使用-kics-扫描-dockerfile>使用 KICS 扫描 Dockerfile</a></li><li><a href=#使用-kics-扫描-helm-charts>使用 KICS 扫描 Helm Charts</a></li></ul></li><li><a href=#将-kics-集成到-tekton-cicd-中>将 KICS 集成到 Tekton CI/CD 中</a></li></ul></li></ul></nav></div></div><div class=post-content><p><img src=images/kics.png alt=kics></p><h2 id=关于-kics>关于 KICS</h2><p><a href=https://github.com/Checkmarx/kics>KICS</a> 是 Keeping Infrastructure as Code Secure 的缩写，是一个开源项目，主要用来在开发早期发现基础设施即代码中的一些安全漏洞、合规问题以及错误配置等。目前支持多种平台，诸如 Terraform、Kubernetes、Docker、Helm、Ansible 等。</p><h3 id=kics-的原理>KICS 的原理</h3><p>KICS 是插件式架构，具有可扩展的 IaC 语言解析管道，可以轻松地整合新的 IaC 语言和查询。KICS 有几个主要的组件：CLI、解析器（parser）、查询执行引擎（queries exection engine）、IaC 提供者（IaC provider）、安全查询（security queries）以及结果写入器（results writer）。各组件的主要功能为：</p><ul><li><strong>CLI</strong>：为 KICS 提供命令行输入；</li><li><strong>解析器</strong>：负责解析输入的 IaC 文件（比如 terraform 及其他形式）；</li><li><strong>IaC 提供者</strong>：将 IaC 语言转换成规范化的 JSON；</li><li><strong>查询执行引擎</strong>：对规范化的 JSON 使用 REGO 查询；</li><li><strong>安全查询</strong>：针对每个安全漏洞和错误配置进行前置 REGO 查询；</li><li><strong>写入器</strong>：将结果写入到 JSON 文件中；</li></ul><p>架构图如下：</p><p><img src=images/kics-arch.png alt=kics-arch></p><h2 id=使用-kics-扫描-iac>使用 KICS 扫描 IaC</h2><p>可以通过源码构建、brew 或者 docker 的方式来使用 KICS。详细使用方法可以参考<a href=https://github.com/Checkmarx/kics/blob/master/docs/getting-started.md>KICS 安装官方文档</a>。本文选择用 docker 的方式来使用 KICS。docker 镜像为 <code>checkmarx/kics:latest</code>。可以通过启动容器的方式来查看 KICS 的用法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker run -t checkmarx/kics --help
+Keeping Infrastructure as Code Secure
+
+Usage:
+  kics [command]
+
+Available Commands:
+  generate-id    Generates uuid for query
+  help           Help about any command
+  list-platforms List supported platforms
+  remediate      Auto remediates the project
+  scan           Executes a scan analysis
+  version        Displays the current version
+
+Flags:
+      --ci                  display only log messages to CLI output (mutually exclusive with silent)
+  -h, --help                help for kics
+  -f, --log-format string   determines log format (pretty,json) (default &#34;pretty&#34;)
+      --log-level string    determines log level (TRACE,DEBUG,INFO,WARN,ERROR,FATAL) (default &#34;INFO&#34;)
+      --log-path string     path to generate log file (info.log)
+      --no-color            disable CLI color output
+      --profiling string    enables performance profiler that prints resource consumption metrics in the logs during the execution (CPU, MEM)
+  -s, --silent              silence stdout messages (mutually exclusive with verbose and ci)
+  -v, --verbose             write logs to stdout too (mutually exclusive with silent)
+
+Use &#34;kics [command] --help&#34; for more information about a command.
+</code></pre></td></tr></table></div></div><p>查看 KICS 支持的平台类型：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker run -t checkmarx/kics list-platforms
+Ansible
+AzureResourceManager
+Buildah
+CloudFormation
+DockerCompose
+Dockerfile
+GRPC
+GoogleDeploymentManager
+Kubernetes
+OpenAPI
+Terraform
+</code></pre></td></tr></table></div></div><h3 id=使用-kics-扫描-dockerfile>使用 KICS 扫描 Dockerfile</h3><p>使用如下的 Dockerfile 来进行扫描：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>FROM golang:1.12.9-alpine3.9 as builder
+WORKDIR /tmp
+COPY main.go /tmp
+RUN go build main.go
+
+FROM alpine:latest
+WORKDIR /usr/src/app/
+COPY --from=builder /tmp/main /usr/src/app/
+CMD [&#34;./main&#34;]
+</code></pre></td></tr></table></div></div><p>使用如下命令进行扫描并查看输出结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker run -t -v $PWD:/tmp/  checkmarx/kics scan -t Dockerfile -p &#34;/tmp/&#34;
+
+                   .0MO.
+                   OMMMx
+                   ;NMX;
+                    ...           ...              ....
+WMMMd     cWMMM0.  KMMMO      ;xKWMMMMNOc.     ,xXMMMMMWXkc.
+WMMMd   .0MMMN:    KMMMO    :XMMMMMMMMMMMWl   xMMMMMWMMMMMMl
+WMMMd  lWMMMO.     KMMMO   xMMMMKc...&#39;lXMk   ,MMMMx   .;dXx
+WMMMd.0MMMX;       KMMMO  cMMMMd        &#39;    &#39;MMMMNl&#39;
+WMMMNWMMMMl        KMMMO  0MMMN               oMMMMMMMXkl.
+WMMMMMMMMMMo       KMMMO  0MMMX                .ckKWMMMMMM0.
+WMMMMWokMMMMk      KMMMO  oMMMMc              .     .:OMMMM0
+WMMMK.  dMMMM0.    KMMMO   KMMMMx&#39;    ,kNc   :WOc.    .NMMMX
+WMMMd    cWMMMX.   KMMMO    kMMMMMWXNMMMMMd .WMMMMWKO0NMMMMl
+WMMMd     ,NMMMN,  KMMMO     &#39;xNMMMMMMMNx,   .l0WMMMMMMMWk,
+xkkk:      ,kkkkx  okkkl        ;xKXKx;          ;dOKKkc
+
+
+Scanning with Keeping Infrastructure as Code Secure v1.5.12
+
+
+Preparing Scan Assets: Done
+Executing queries: [---------------------------------------------------] 100.00%
+
+Files scanned: 1
+Parsed files: 1
+Queries loaded: 48
+Queries failed to execute: 0
+
+------------------------------------
+
+Healthcheck Instruction Missing, Severity: LOW, Results: 1
+Description: Ensure that HEALTHCHECK is being used. The HEALTHCHECK instruction tells Docker how to test a container to check that it is still working
+Platform: Dockerfile
+
+	[1]: ../../tmp/Dockerfile:9
+
+		008:
+		009: FROM alpine:latest
+		010:
+
+
+Image Version Using &#39;latest&#39;, Severity: MEDIUM, Results: 1
+Description: When building images, always tag them with useful tags which codify version information, intended destination (prod or test, for instance), stability, or other information that is useful when deploying the application in different environments. Do not rely on the automatically-created latest tag
+Platform: Dockerfile
+
+	[1]: ../../tmp/Dockerfile:9
+
+		008:
+		009: FROM alpine:latest
+		010:
+
+
+Missing User Instruction, Severity: HIGH, Results: 1
+Description: A user should be specified in the dockerfile, otherwise the image will run as root
+Platform: Dockerfile
+
+	[1]: ../../tmp/Dockerfile:9
+
+		008:
+		009: FROM alpine:latest
+		010:
+
+
+
+Results Summary:
+HIGH: 1
+MEDIUM: 1
+LOW: 1
+INFO: 0
+TOTAL: 3
+
+Scan duration: 7.366705761s
+</code></pre></td></tr></table></div></div><p>可以看到扫描出来了三个安全问题，高中低各一个。高危漏洞指没有指定容器的启用用户，中危漏洞是指使用了 <code>latest</code> 镜像 tag，低危漏洞是指没有使用 HEALTHCHECK。修复之后的 Dockerfile 如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>FROM golang:1.12.9-alpine3.9 as builder
+WORKDIR /tmp
+COPY main.go /tmp
+RUN go build main.go
+
+FROM alpine:3.10
+RUN addgroup -S devsecops &amp;&amp; adduser -S devsecops -G devsecops
+WORKDIR /usr/src/app/
+COPY  --from=builder /tmp/main /usr/src/app/
+USER devsecops
+HEALTHCHECK CMD curl --fail http://localhost:9999 || exit 1
+CMD [&#34;./main&#34;]
+</code></pre></td></tr></table></div></div><p>再次扫描：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback> docker run -t -v $PWD:/tmp/  checkmarx/kics scan -t Dockerfile -p &#34;/tmp/&#34;
+
+                   .0MO.
+                   OMMMx
+                   ;NMX;
+                    ...           ...              ....
+WMMMd     cWMMM0.  KMMMO      ;xKWMMMMNOc.     ,xXMMMMMWXkc.
+WMMMd   .0MMMN:    KMMMO    :XMMMMMMMMMMMWl   xMMMMMWMMMMMMl
+WMMMd  lWMMMO.     KMMMO   xMMMMKc...&#39;lXMk   ,MMMMx   .;dXx
+WMMMd.0MMMX;       KMMMO  cMMMMd        &#39;    &#39;MMMMNl&#39;
+WMMMNWMMMMl        KMMMO  0MMMN               oMMMMMMMXkl.
+WMMMMMMMMMMo       KMMMO  0MMMX                .ckKWMMMMMM0.
+WMMMMWokMMMMk      KMMMO  oMMMMc              .     .:OMMMM0
+WMMMK.  dMMMM0.    KMMMO   KMMMMx&#39;    ,kNc   :WOc.    .NMMMX
+WMMMd    cWMMMX.   KMMMO    kMMMMMWXNMMMMMd .WMMMMWKO0NMMMMl
+WMMMd     ,NMMMN,  KMMMO     &#39;xNMMMMMMMNx,   .l0WMMMMMMMWk,
+xkkk:      ,kkkkx  okkkl        ;xKXKx;          ;dOKKkc
+
+
+Scanning with Keeping Infrastructure as Code Secure v1.5.12
+
+
+Preparing Scan Assets: Done
+Executing queries: [---------------------------------------------------] 100.00%
+
+Files scanned: 1
+Parsed files: 1
+Queries loaded: 48
+Queries failed to execute: 0
+
+------------------------------------
+
+
+Results Summary:
+HIGH: 0
+MEDIUM: 0
+LOW: 0
+INFO: 0
+TOTAL: 0
+
+Scan duration: 6.053745825s
+</code></pre></td></tr></table></div></div><p>可以看到所有级别的安全问题都为 0。证明问题已经被修复。</p><blockquote><p><strong>注意</strong>：上述 Dockerfile 修复只是为了验证 KICS 的 IaC 扫描能力，需要根据自身场景进行 Dockerfile 的准确编写与修复。</p></blockquote><h3 id=使用-kics-扫描-helm-charts>使用 KICS 扫描 Helm Charts</h3><p>使用 <code>helm create</code> 创建一个 helm chart：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ helm create kics
+Creating kics
+</code></pre></td></tr></table></div></div><p>使用 KICS 进行扫描：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker run -t -v $PWD:/tmp/  checkmarx/kics scan -t Kubernetes -p &#34;/tmp/&#34;
+
+                   .0MO.
+                   OMMMx
+                   ;NMX;
+                    ...           ...              ....
+WMMMd     cWMMM0.  KMMMO      ;xKWMMMMNOc.     ,xXMMMMMWXkc.
+WMMMd   .0MMMN:    KMMMO    :XMMMMMMMMMMMWl   xMMMMMWMMMMMMl
+WMMMd  lWMMMO.     KMMMO   xMMMMKc...&#39;lXMk   ,MMMMx   .;dXx
+WMMMd.0MMMX;       KMMMO  cMMMMd        &#39;    &#39;MMMMNl&#39;
+WMMMNWMMMMl        KMMMO  0MMMN               oMMMMMMMXkl.
+WMMMMMMMMMMo       KMMMO  0MMMX                .ckKWMMMMMM0.
+WMMMMWokMMMMk      KMMMO  oMMMMc              .     .:OMMMM0
+WMMMK.  dMMMM0.    KMMMO   KMMMMx&#39;    ,kNc   :WOc.    .NMMMX
+WMMMd    cWMMMX.   KMMMO    kMMMMMWXNMMMMMd .WMMMMWKO0NMMMMl
+WMMMd     ,NMMMN,  KMMMO     &#39;xNMMMMMMMNx,   .l0WMMMMMMMWk,
+xkkk:      ,kkkkx  okkkl        ;xKXKx;          ;dOKKkc
+
+
+Scanning with Keeping Infrastructure as Code Secure v1.5.12
+
+
+Preparing Scan Assets: Done
+Executing queries: [---------------------------------------------------] 100.00%
+
+Files scanned: 4
+Parsed files: 3
+Queries loaded: 146
+Queries failed to execute: 0
+
+------------------------------------
+
+Root Container Not Mounted Read-only, Severity: LOW, Results: 1
+Description: Check if the root container filesystem is not being mounted read-only.
+Platform: Kubernetes
+
+	[1]: ../../tmp/kics/templates/deployment.yaml:30
+
+		029:         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+		030:       containers:
+		031:         - name: {{ .Chart.Name }}
+
+
+CPU Limits Not Set, Severity: MEDIUM, Results: 1
+Description: CPU limits should be set because if the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests
+Platform: Kubernetes
+
+	[1]: ../../tmp/kics/templates/deployment.yaml:48
+
+		047:               port: http
+		048:           resources:
+		049:             {{- toYaml .Values.resources | nindent 12 }}
+
+
+Privilege Escalation Allowed, Severity: HIGH, Results: 1
+Description: Containers should not run with allowPrivilegeEscalation in order to prevent them from gaining more privileges than their parent process
+Platform: Kubernetes
+
+	[1]: ../../tmp/kics/templates/deployment.yaml:30
+
+		029:         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+		030:       containers:
+		031:         - name: {{ .Chart.Name }}
+
+
+NET_RAW Capabilities Not Being Dropped, Severity: HIGH, Results: 1
+Description: Containers should drop &#39;ALL&#39; or at least &#39;NET_RAW&#39; capabilities
+Platform: Kubernetes
+
+	[1]: ../../tmp/kics/templates/deployment.yaml:30
+
+		029:         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+		030:       containers:
+		031:         - name: {{ .Chart.Name }}
+
+
+
+Results Summary:
+HIGH: 2
+MEDIUM: 10
+LOW: 7
+INFO: 0
+TOTAL: 19
+
+Scan duration: 4.371884514s
+</code></pre></td></tr></table></div></div><p>可以看到总计有 19 处安全问题。可以根据提示进行修复，修复之后再次扫描即可。</p><h2 id=将-kics-集成到-tekton-cicd-中>将 KICS 集成到 Tekton CI/CD 中</h2><p>使用 Tekton 创建一个 task，内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-docker-image
+spec:
+  resources:
+    inputs:
+      - name: source-code
+        type: git
+  steps:
+    - name: dockerfile-kics-scan
+      image: checkmarx/kics
+      script: |
+        #! /bin/sh
+        kics scan -t Dockerfile -p $(resources.inputs.source-code.path)
+</code></pre></td></tr></table></div></div><p>然后创建 <code>Task</code> 即可。然后用 <code>TaskRun</code> 触发一个 <code>Task</code>，可以查看两者的状态：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$  tkn -n tekton-kics tr list
+NAME                     STARTED         DURATION     STATUS
+dockerfile-kics-scan-run   4 minutes ago   21 seconds   Succeeded
+
+$ tkn -n tekton-kics t list
+NAME                 DESCRIPTION   AGE
+dockerfile-kics-scan                 4 minutes ago
+</code></pre></td></tr></table></div></div><p>整个构建过程会在 <code>tekton-kics</code> namespace 下面创建一个 pods：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n tekton-kics get pods -w
+NAME                         READY   STATUS            RESTARTS   AGE
+build-docker-image-run-pod   0/4     PodInitializing   0          7s
+build-docker-image-run-pod   4/4     Running           0          13s
+build-docker-image-run-pod   4/4     Running           0          13s
+build-docker-image-run-pod   2/4     NotReady          0          15s
+build-docker-image-run-pod   0/4     Completed         0          22s
+build-docker-image-run-pod   0/4     Completed         0          24s
+</code></pre></td></tr></table></div></div><p>通过 <code>logs -f</code> 可查看构建过程：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>kubectl -n tekton-kics logs -f build-docker-image-run-pod -c step-dockerfile-kics-scan
+
+                   .0MO.
+                   OMMMx
+                   ;NMX;
+                    ...           ...              ....
+WMMMd     cWMMM0.  KMMMO      ;xKWMMMMNOc.     ,xXMMMMMWXkc.
+WMMMd   .0MMMN:    KMMMO    :XMMMMMMMMMMMWl   xMMMMMWMMMMMMl
+WMMMd  lWMMMO.     KMMMO   xMMMMKc...&#39;lXMk   ,MMMMx   .;dXx
+WMMMd.0MMMX;       KMMMO  cMMMMd        &#39;    &#39;MMMMNl&#39;
+WMMMNWMMMMl        KMMMO  0MMMN               oMMMMMMMXkl.
+WMMMMMMMMMMo       KMMMO  0MMMX                .ckKWMMMMMM0.
+WMMMMWokMMMMk      KMMMO  oMMMMc              .     .:OMMMM0
+WMMMK.  dMMMM0.    KMMMO   KMMMMx&#39;    ,kNc   :WOc.    .NMMMX
+WMMMd    cWMMMX.   KMMMO    kMMMMMWXNMMMMMd .WMMMMWKO0NMMMMl
+WMMMd     ,NMMMN,  KMMMO     &#39;xNMMMMMMMNx,   .l0WMMMMMMMWk,
+xkkk:      ,kkkkx  okkkl        ;xKXKx;          ;dOKKkc
+
+
+Scanning with Keeping Infrastructure as Code Secure v1.5.12
+
+
+
+Files scanned: 1
+Parsed files: 1
+Queries loaded: 48
+Queries failed to execute: 0
+
+------------------------------------
+
+
+Results Summary:
+HIGH: 0
+MEDIUM: 0
+LOW: 0
+INFO: 0
+TOTAL: 0
+
+Scan duration: 3.556468026s
+</code></pre></td></tr></table></div></div><p>结果显示没有任何安全漏洞，是因为使用了前述修复之后的 Dockerfile 来进行演示。</p><p>关于其他 IaC 的扫描以及与 Tekton 的集成与上述演示的类似，在此不做详述。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-07-21</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/security/>Security</a>
+<a href=/tags/kics/>KICS</a>
+<a href=/tags/iac/>IaC</a></div><nav class=post-nav><a class=next href=/devsecops/cosign/><span class="next-text nav-default">使用 cosign 来签名和验证 OCI 镜像，并和 Tekton CI/CD 集成</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
