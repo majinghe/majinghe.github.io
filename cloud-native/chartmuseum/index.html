@@ -1,0 +1,292 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>使用 ChartMuseum 构建私有的 Helm Chart Registry - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/cloud-native/chartmuseum/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta property="og:description" content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/cloud-native/chartmuseum/"><meta property="article:published_time" content="2022-07-24T13:05:42+08:00"><meta property="article:modified_time" content="2022-07-24T13:05:42+08:00"><meta itemprop=name content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta itemprop=description content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta itemprop=datePublished content="2022-07-24T13:05:42+08:00"><meta itemprop=dateModified content="2022-07-24T13:05:42+08:00"><meta itemprop=wordCount content="1680"><meta itemprop=keywords content="Cloud Native,Helm,"><meta name=twitter:card content="summary"><meta name=twitter:title content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><meta name=twitter:description content="使用 ChartMuseum 构建私有的 Helm Chart Registry"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>使用 ChartMuseum 构建私有的 Helm Chart Registry</h1><div class=post-meta><span class=post-time>2022-07-24</span><div class=post-category><a href=/categories/cloud-native/>Cloud Native</a>
+<a href=/categories/helm/>Helm</a></div><span class=more-meta>约 1680 字</span>
+<span class=more-meta>预计阅读 4 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#关于-chartmuseum>关于 ChartMuseum</a></li><li><a href=#chartmuseum-的使用>ChartMuseum 的使用</a><ul><li><a href=#chartmuseum-的安装>ChartMuseum 的安装</a></li><li><a href=#chartmuseum-的使用-1>ChartMuseum 的使用</a><ul><li><a href=#上传一个-chart>上传一个 Chart</a></li><li><a href=#list-所有-chart>list 所有 chart</a></li><li><a href=#删除一个-chart>删除一个 Chart</a></li><li><a href=#使用-helm-chart>使用 Helm Chart</a></li></ul></li><li><a href=#其他配置>其他配置</a><ul><li><a href=#basic-auth>Basic Auth</a></li><li><a href=#https-配置>HTTPS 配置</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p align=center><img src=images/cm-logo.png alt="ChartMuseum logo"></img></p><h1 id=关于-chartmuseum>关于 ChartMuseum</h1><p>ChartMuseum 是一个用 Go 语言写的开源的 Helm Chart Repository 服务器，目前支持多种云存储后端，诸如 Google Cloud Storage、Alibaba Cloud OSS Storage、Minio 以及 etcd 等。</p><p>ChartMuseum 有多种 API 来完成对 Helm Chart Repository、Chart 以及 Server 的操作。所有可用的 API 以及使用方法可查看<a href=https://github.com/helm/chartmuseum>GitHub Repo</a>。</p><h1 id=chartmuseum-的使用>ChartMuseum 的使用</h1><h2 id=chartmuseum-的安装>ChartMuseum 的安装</h2><p>ChartMuseum 的安装支持 gofish、bash 脚本以及 docker。详细使用可参考<a href=https://chartmuseum.com/#Instructions>官网</a>。本文用 docker 来安装一个 ChartMuseum 实例。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker run --rm -it \
+  -p 8080:8080 \
+  -e DEBUG=1 \
+  -e STORAGE=local \
+  -e STORAGE_LOCAL_ROOTDIR=/charts \
+  -v $(pwd)/charts:/charts \
+  ghcr.io/helm/chartmuseum:v0.14.0
+2022-07-24T14:28:19.913Z	DEBUG	Fetching chart list from storage	{&#34;repo&#34;: &#34;&#34;}
+2022-07-24T14:28:19.915Z	DEBUG	No change detected between cache and storage	{&#34;repo&#34;: &#34;&#34;}
+2022-07-24T14:28:19.915Z	INFO	Starting ChartMuseum	{&#34;host&#34;: &#34;0.0.0.0&#34;, &#34;port&#34;: 8080}
+2022-07-24T14:28:19.916Z	DEBUG	Starting internal event listener
+</code></pre></td></tr></table></div></div><p>上述命令中选择了 local 作为后端存储，ChartMuseum 的监听端口为 8080，可以用 localhost:8080 访问实例。</p><p><img src=images/cm.png alt=cm></p><h2 id=chartmuseum-的使用-1>ChartMuseum 的使用</h2><h3 id=上传一个-chart>上传一个 Chart</h3><p>首先创建一个 chart 并打包：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=err>$</span> <span class=nx>helm</span> <span class=nx>create</span> <span class=nx>cm</span><span class=o>-</span><span class=nx>demo</span>
+<span class=nx>Creating</span> <span class=nx>cm</span><span class=o>-</span><span class=nx>demo</span>
+
+<span class=err>$</span> <span class=nx>helm</span> <span class=kn>package</span> <span class=nx>cm</span><span class=o>-</span><span class=nx>demo</span>
+<span class=nx>Successfully</span> <span class=nx>packaged</span> <span class=nx>chart</span> <span class=nx>and</span> <span class=nx>saved</span> <span class=nx>it</span> <span class=nx>to</span><span class=p>:</span> <span class=o>/</span><span class=nx>Users</span><span class=o>/</span><span class=nx>xiaomage</span><span class=o>/</span><span class=nx>Documents</span><span class=o>/</span><span class=nx>xiaomage</span><span class=o>/</span><span class=nx>helm</span><span class=o>-</span><span class=nx>demo</span><span class=o>/</span><span class=nx>cm</span><span class=o>-</span><span class=nx>demo</span><span class=o>-</span><span class=mf>0.1.0</span><span class=p>.</span><span class=nx>tgz</span>
+
+<span class=err>$</span> <span class=nx>ls</span> <span class=o>-</span><span class=nx>ltr</span> 
+<span class=o>-</span><span class=nx>rw</span><span class=o>-</span><span class=nx>r</span><span class=o>--</span><span class=nx>r</span><span class=o>--</span>  <span class=mi>1</span> <span class=nx>xiaomage</span>  <span class=nx>staff</span>  <span class=mi>3754</span> <span class=nx>Jul</span> <span class=mi>24</span> <span class=mi>22</span><span class=p>:</span><span class=mi>53</span> <span class=nx>cm</span><span class=o>-</span><span class=nx>demo</span><span class=o>-</span><span class=mf>0.1.0</span><span class=p>.</span><span class=nx>tgz</span>
+</code></pre></td></tr></table></div></div><p>使用如下命令上传到 ChartMuseum：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ curl --data-binary &#34;@cm-demo-0.1.0.tgz&#34; http://localhost:8080/api/charts
+{&#34;saved&#34;:true}
+</code></pre></td></tr></table></div></div><p>整个过程可以查看 ChartMuseum 的 log：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.850</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Incoming</span> <span class=nx>request</span><span class=p>:</span> <span class=o>/</span><span class=nx>api</span><span class=o>/</span><span class=nx>charts</span>	<span class=p>{</span><span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.855</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Adding</span> <span class=kn>package</span> <span class=nx>to</span> <span class=nx>storage</span>	<span class=p>{</span><span class=s>&#34;package&#34;</span><span class=p>:</span> <span class=s>&#34;cm-demo-0.1.0.tgz&#34;</span><span class=p>,</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.855</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>PutWithLimit</span><span class=p>:</span> <span class=nx>per</span><span class=o>-</span><span class=nx>chart</span><span class=o>-</span><span class=nx>limit</span> <span class=nx>not</span> <span class=nx>set</span>	<span class=p>{</span><span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.861</span><span class=nx>Z</span>	<span class=nx>INFO</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Request</span> <span class=nx>served</span>	<span class=p>{</span><span class=s>&#34;path&#34;</span><span class=p>:</span> <span class=s>&#34;/api/charts&#34;</span><span class=p>,</span> <span class=s>&#34;comment&#34;</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;clientIP&#34;</span><span class=p>:</span> <span class=s>&#34;172.17.0.1&#34;</span><span class=p>,</span> <span class=s>&#34;method&#34;</span><span class=p>:</span> <span class=s>&#34;POST&#34;</span><span class=p>,</span> <span class=s>&#34;statusCode&#34;</span><span class=p>:</span> <span class=mi>201</span><span class=p>,</span> <span class=s>&#34;latency&#34;</span><span class=p>:</span> <span class=s>&#34;10.343201ms&#34;</span><span class=p>,</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.861</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Event</span> <span class=nx>received</span>	<span class=p>{</span><span class=s>&#34;event&#34;</span><span class=p>:</span> <span class=p>{</span><span class=s>&#34;repo_name&#34;</span><span class=p>:</span><span class=s>&#34;&#34;</span><span class=p>,</span><span class=s>&#34;operation_type&#34;</span><span class=p>:</span><span class=mi>1</span><span class=p>,</span><span class=s>&#34;chart_version&#34;</span><span class=p>:{</span><span class=s>&#34;name&#34;</span><span class=p>:</span><span class=s>&#34;cm-demo&#34;</span><span class=p>,</span><span class=s>&#34;version&#34;</span><span class=p>:</span><span class=s>&#34;0.1.0&#34;</span><span class=p>,</span><span class=s>&#34;description&#34;</span><span class=p>:</span><span class=s>&#34;A Helm chart for Kubernetes&#34;</span><span class=p>,</span><span class=s>&#34;apiVersion&#34;</span><span class=p>:</span><span class=s>&#34;v2&#34;</span><span class=p>,</span><span class=s>&#34;appVersion&#34;</span><span class=p>:</span><span class=s>&#34;1.16.0&#34;</span><span class=p>,</span><span class=s>&#34;type&#34;</span><span class=p>:</span><span class=s>&#34;application&#34;</span><span class=p>,</span><span class=s>&#34;urls&#34;</span><span class=p>:[</span><span class=s>&#34;charts/cm-demo-0.1.0.tgz&#34;</span><span class=p>],</span><span class=s>&#34;created&#34;</span><span class=p>:</span><span class=s>&#34;2022-07-24T14:55:05.8606406Z&#34;</span><span class=p>,</span><span class=s>&#34;digest&#34;</span><span class=p>:</span><span class=s>&#34;7c166f8b1c87b62797c54016a713b5e7443ea138adf907a4e140f2bbb0f3a375&#34;</span><span class=p>}},</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.861</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Entry</span> <span class=nx>found</span> <span class=nx>in</span> <span class=nx>cache</span> <span class=nx>store</span>	<span class=p>{</span><span class=s>&#34;repo&#34;</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.862</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Entry</span> <span class=nx>saved</span> <span class=nx>in</span> <span class=nx>cache</span> <span class=nx>store</span>	<span class=p>{</span><span class=s>&#34;repo&#34;</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.862</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>Event</span> <span class=nx>handled</span> <span class=nx>successfully</span>	<span class=p>{</span><span class=s>&#34;event&#34;</span><span class=p>:</span> <span class=p>{</span><span class=s>&#34;repo_name&#34;</span><span class=p>:</span><span class=s>&#34;&#34;</span><span class=p>,</span><span class=s>&#34;operation_type&#34;</span><span class=p>:</span><span class=mi>1</span><span class=p>,</span><span class=s>&#34;chart_version&#34;</span><span class=p>:{</span><span class=s>&#34;name&#34;</span><span class=p>:</span><span class=s>&#34;cm-demo&#34;</span><span class=p>,</span><span class=s>&#34;version&#34;</span><span class=p>:</span><span class=s>&#34;0.1.0&#34;</span><span class=p>,</span><span class=s>&#34;description&#34;</span><span class=p>:</span><span class=s>&#34;A Helm chart for Kubernetes&#34;</span><span class=p>,</span><span class=s>&#34;apiVersion&#34;</span><span class=p>:</span><span class=s>&#34;v2&#34;</span><span class=p>,</span><span class=s>&#34;appVersion&#34;</span><span class=p>:</span><span class=s>&#34;1.16.0&#34;</span><span class=p>,</span><span class=s>&#34;type&#34;</span><span class=p>:</span><span class=s>&#34;application&#34;</span><span class=p>,</span><span class=s>&#34;urls&#34;</span><span class=p>:[</span><span class=s>&#34;charts/cm-demo-0.1.0.tgz&#34;</span><span class=p>],</span><span class=s>&#34;created&#34;</span><span class=p>:</span><span class=s>&#34;2022-07-24T14:55:05.8606406Z&#34;</span><span class=p>,</span><span class=s>&#34;digest&#34;</span><span class=p>:</span><span class=s>&#34;7c166f8b1c87b62797c54016a713b5e7443ea138adf907a4e140f2bbb0f3a375&#34;</span><span class=p>}},</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+<span class=mi>2022</span><span class=o>-</span><span class=mo>07</span><span class=o>-</span><span class=mi>24</span><span class=nx>T14</span><span class=p>:</span><span class=mi>55</span><span class=p>:</span><span class=mf>05.875</span><span class=nx>Z</span>	<span class=nx>DEBUG</span>	<span class=p>[</span><span class=mi>5</span><span class=p>]</span> <span class=nx>index</span><span class=o>-</span><span class=nx>cache</span><span class=p>.</span><span class=nx>yaml</span> <span class=nx>saved</span> <span class=nx>in</span> <span class=nx>storage</span>	<span class=p>{</span><span class=s>&#34;repo&#34;</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;reqID&#34;</span><span class=p>:</span> <span class=s>&#34;f84dc98c-2176-4182-96cb-585a99372c4b&#34;</span><span class=p>}</span>
+</code></pre></td></tr></table></div></div><p>可以看到调用了 <code>/api/charts</code> 这个 API，并且解析了 Chart 的信息，诸如版本，描述信息等。可以在后端存储查看对应的 chart：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ ls -ltr charts
+total 24
+-rw-r--r--  1 xiaomage  staff  3754 Jul 24 22:55 cm-demo-0.1.0.tgz
+-rw-r--r--  1 xiaomage  staff   734 Jul 24 22:55 index-cache.yaml
+</code></pre></td></tr></table></div></div><p>查看 <code>index-cache.yaml</code> 文件：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ cat index-cache.yaml
+apiVersion: v1
+entries:
+  cm-demo:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: &#34;2022-07-24T14:55:05.8606406Z&#34;
+    description: A Helm chart for Kubernetes
+    digest: 7c166f8b1c87b62797c54016a713b5e7443ea138adf907a4e140f2bbb0f3a375
+    name: cm-demo
+    type: application
+    urls:
+    - charts/cm-demo-0.1.0.tgz
+    version: 0.1.0
+generated: &#34;2022-07-24T14:55:06Z&#34;
+serverInfo: {}
+</code></pre></td></tr></table></div></div><p>可以看到 chart 的信息。</p><h3 id=list-所有-chart>list 所有 chart</h3><p>调用 <code>/api/charts</code> 即可 list 所有 charts：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ curl  http://localhost:8080/api/charts | jq .
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   640  100   640    0     0  27826      0 --:--:-- --:--:-- --:--:-- 27826
+{
+  &#34;cm-demo&#34;: [
+    {
+      &#34;name&#34;: &#34;cm-demo&#34;,
+      &#34;version&#34;: &#34;0.1.0&#34;,
+      &#34;description&#34;: &#34;A Helm chart for Kubernetes&#34;,
+      &#34;apiVersion&#34;: &#34;v2&#34;,
+      &#34;appVersion&#34;: &#34;1.16.0&#34;,
+      &#34;type&#34;: &#34;application&#34;,
+      &#34;urls&#34;: [
+        &#34;charts/cm-demo-0.1.0.tgz&#34;
+      ],
+      &#34;created&#34;: &#34;2022-07-24T15:47:35.380165176Z&#34;,
+      &#34;digest&#34;: &#34;7c166f8b1c87b62797c54016a713b5e7443ea138adf907a4e140f2bbb0f3a375&#34;
+    }
+  ],
+  &#34;cloud-native&#34;: [
+    {
+      &#34;name&#34;: &#34;cloud-native&#34;,
+      &#34;version&#34;: &#34;0.1.0&#34;,
+      &#34;description&#34;: &#34;A Helm chart for Kubernetes&#34;,
+      &#34;apiVersion&#34;: &#34;v2&#34;,
+      &#34;appVersion&#34;: &#34;1.16.0&#34;,
+      &#34;type&#34;: &#34;application&#34;,
+      &#34;urls&#34;: [
+        &#34;charts/cloud-native-0.1.0.tgz&#34;
+      ],
+      &#34;created&#34;: &#34;2022-07-24T15:48:04.904623867Z&#34;,
+      &#34;digest&#34;: &#34;2b6cec2ff082c1bc61bf5c43552d7d27cfe2d0c578e596a4c19451e55bdfd190&#34;
+    }
+  ]
+}
+</code></pre></td></tr></table></div></div><h3 id=删除一个-chart>删除一个 Chart</h3><p>调用 <code>/api/charts/&lt;name>/&lt;version></code> 即可删除对应chart，以上文的 cloud-native chart 为例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ curl  -X DELETE http://localhost:8080/api/charts/cloud-native/0.1.0
+{&#34;deleted&#34;:true}
+</code></pre></td></tr></table></div></div><p>再 list 一下进行确认：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ curl   http://localhost:8080/api/charts/devops-is-shit/0.1.0 
+{&#34;error&#34;:&#34;no chart name found&#34;}
+</code></pre></td></tr></table></div></div><p>可以看到 chart 已经被删除。</p><h3 id=使用-helm-chart>使用 Helm Chart</h3><p>可以使用上传到 ChartMuseum 的 chart 进行部署安装。</p><p>首先需要添加 ChartMuseum 为 Helm Chart Repo：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ helm repo add chartmuseum http://localhost:8080/
+&#34;chartmuseum&#34; has been added to your repositories
+
+$ helm repo list
+chartmuseum	http://localhost:8080/
+</code></pre></td></tr></table></div></div><p>接着使用 install 命令安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ helm install cm-demo --namespace cm-demo --create-namespace chartmuseum/cm-demo
+NAME: cm-demo
+LAST DEPLOYED: Sun Jul 24 23:05:34 2022
+NAMESPACE: cm-demo
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace cm-demo -l &#34;app.kubernetes.io/name=cm-demo,app.kubernetes.io/instance=cm-demo&#34; -o jsonpath=&#34;{.items[0].metadata.name}&#34;)
+  export CONTAINER_PORT=$(kubectl get pod --namespace cm-demo $POD_NAME -o jsonpath=&#34;{.spec.containers[0].ports[0].containerPort}&#34;)
+  echo &#34;Visit http://127.0.0.1:8080 to use your application&#34;
+  kubectl --namespace cm-demo port-forward $POD_NAME 8080:$CONTAINER_PORT
+</code></pre></td></tr></table></div></div><p>接着查看 pod：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n cm-demo get pods
+NAME                                     READY   STATUS    RESTARTS   AGE
+cm-demo-c89f796b4-wxv29   1/1     Running   0          67s
+</code></pre></td></tr></table></div></div><p>整个过程可以查看 ChartMuseum 的 log：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>2022-07-24T15:00:05.374Z	DEBUG	[6] Incoming request: /index.yaml	{&#34;reqID&#34;: &#34;3a5f8ca9-9d3a-46ce-8c46-c795b44d47c8&#34;}
+2022-07-24T15:00:05.374Z	DEBUG	[6] Entry found in cache store	{&#34;repo&#34;: &#34;&#34;, &#34;reqID&#34;: &#34;3a5f8ca9-9d3a-46ce-8c46-c795b44d47c8&#34;}
+2022-07-24T15:00:05.375Z	INFO	[6] Request served	{&#34;path&#34;: &#34;/index.yaml&#34;, &#34;comment&#34;: &#34;&#34;, &#34;clientIP&#34;: &#34;172.17.0.1&#34;, &#34;method&#34;: &#34;GET&#34;, &#34;statusCode&#34;: 200, &#34;latency&#34;: &#34;166.463µs&#34;, &#34;reqID&#34;: &#34;3a5f8ca9-9d3a-46ce-8c46-c795b44d47c8&#34;}
+2022-07-24T15:05:32.590Z	DEBUG	[7] Incoming request: /charts/cm-demo-0.1.0.tgz	{&#34;reqID&#34;: &#34;5b924457-c55a-444d-b258-7b52705e5556&#34;}
+2022-07-24T15:05:32.606Z	INFO	[7] Request served	{&#34;path&#34;: &#34;/charts/cm-demo-0.1.0.tgz&#34;, &#34;comment&#34;: &#34;&#34;, &#34;clientIP&#34;: &#34;172.17.0.1&#34;, &#34;method&#34;: &#34;GET&#34;, &#34;statusCode&#34;: 200, &#34;latency&#34;: &#34;15.667215ms&#34;, &#34;reqID&#34;: &#34;5b924457-c55a-444d-b258-7b52705e5556&#34;}
+</code></pre></td></tr></table></div></div><p>可以看到调用了 <code>/index.yaml</code> 以及 <code>/charts/cm-demo-0.1.0.tgz</code>。<code>/index.yaml</code> 是在执行 <code>helm repo add</code> 时候调用的，<code>/charts/cm-demo-0.1.0.tgz</code> 是在执行 <code>helm install</code> 时候调用的。</p><p>当然，还有很多 API 来完成 chart 查询、描述等。可在 GitHub 上进行查询。</p><h2 id=其他配置>其他配置</h2><h3 id=basic-auth>Basic Auth</h3><p>可以通过配置 Basic Auth 来完成登录认证。只需要指定 <code>--basic-auth-user</code> 与 <code>--basic-auth-pass</code> 两个参数即可。比如在 docker 启动的时候以 <code>-e</code> 的形式传入 <code>username</code> 和 <code>password</code> 即可。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker run --rm -it \
+  -p 8080:8080 \
+  -e DEBUG=1 \
+  -e STORAGE=local \
+  -e BASIC_AUTH_USER=admin \
+  -e BASIC_AUTH_PASS=password \
+  -e STORAGE_LOCAL_ROOTDIR=/charts \
+  -v $(pwd)/charts:/charts \
+  ghcr.io/helm/chartmuseum:v0.14.0
+</code></pre></td></tr></table></div></div><p>再次使用 <code>http://localhost:8080</code> 登录，会出现需要输入用户名和密码的窗口：</p><p><img src=images/user-pass.png alt=user-pass></p><p>输入用户名和密码登录即可。</p><h3 id=https-配置>HTTPS 配置</h3><p>在启动的时候指定 <code>--tls-cert</code> 与 <code>--tls-key</code> 两个参数即可开启 HTTPS。首先生成一对证书：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout cm.key -out cm.crt
+</code></pre></td></tr></table></div></div><p>根据输出的信息填写对应的证书信息，可以生成相应的 cert 和 key：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ ls -ltr 
+-rw-r--r--  1 xiaomage  staff  1708 Jul 24 23:34 cm.key
+-rw-r--r--  1 xiaomage  staff  1249 Jul 24 23:34 cm.crt
+</code></pre></td></tr></table></div></div><p>在启动的使用通过 <code>-e</code> 传入参数即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker run --rm -it \
+  -p 8080:8080 \
+  -e DEBUG=1 \
+  -e STORAGE=local \
+  -e BASIC_AUTH_USER=admin \
+  -e BASIC_AUTH_PASS=password \
+  -e TLS_CERT=/charts/cm.crt \
+  -e TLS_KEY=/charts/cm.key \
+  -e STORAGE_LOCAL_ROOTDIR=/charts \
+  -v $(pwd)/charts:/charts \
+  ghcr.io/helm/chartmuseum:v0.14.0
+</code></pre></td></tr></table></div></div><p>然后用 <code>https://localhost:8080</code> 来登录，会出现告警：</p><p><img src=images/cm-warning.png alt=cm-warning></p><p>这是因为使用了自签名证书，浏览器不受信任。点击 <code>Advanced</code>，在出现的界面点击 <code>Accept the Risk and Continue</code> 即可出现需要输入用户名和密码的窗口，输入信息即可登录。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-07-24</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/cloud-native/>Cloud Native</a>
+<a href=/tags/helm/>Helm</a></div><nav class=post-nav><a class=next href=/cloud-native/continuous-delivery/><span class="next-text nav-default">与云原生持续交付相关的一些开源项目</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
