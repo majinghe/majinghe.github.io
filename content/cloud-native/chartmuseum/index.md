@@ -115,6 +115,23 @@ serverInfo: {}
 ```
 可以看到 chart 的信息。
 
+也可以使用 `helm cm-push` 命令来完成推送。[cm-push](https://github.com/chartmuseum/helm-push/blob/main/README.md)是一个用来将 chart 推送到 ChartMuseum 的插件。使用如下命令安装即可：
+
+```
+$ helm plugin install https://github.com/chartmuseum/helm-push
+Downloading and installing helm-push v0.10.1 ...
+https://github.com/chartmuseum/helm-push/releases/download/v0.10.1/helm-push_0.10.1_darwin_amd64.tar.gz
+Installed plugin: cm-push
+```
+然后推送：
+
+```
+$ helm cm-push cm-demo/ chartmuseum 
+Pushing cm-demo-0.1.1.tgz to chartmuseum...
+Done.
+```
+同样可以在 Registry 里面找到对应的 chart。
+
 ### list 所有 chart
 
 调用 `/api/charts` 即可 list 所有 charts：
