@@ -17,7 +17,7 @@ type: "post"
 
 至于为什么需要对 git commit/tag 进行签名的原因一言以蔽之就是：**证明代码的提交来自真正的作者，防止提交的代码被篡改，保证提交代码的安全性**。
 
-如果不对 commit/tag 进行签名，可以通过 git 的  `--author="Author Name <email@address.com>"` 来对 commit 信息的作者信息进行篡改，然后提交，这就导致了代码提交着有可能并不是真实的作者本人，如果提交的代码中有恶意代码，会对既有代码造成危害。签名验证就是为了保证代码的提交着和作者是同一个人。
+如果不对 commit/tag 进行签名，可以通过 git 的  `--author="Author Name <email@address.com>"` 来对 commit 信息的作者信息进行篡改，然后提交，这就导致了代码提交者有可能并不是真实的作者本人，如果提交的代码中有恶意代码，会对既有代码造成危害。签名验证就是为了保证代码的提交着和作者是同一个人。
 
 对 commit/tag 进行签名验证的方法比较多，主流的有 GPG、SSH、X.509 证书等这种需要自己维护本地 key 的方式，也有 sigstore 新推出的 gitsign 这一 keyless 的签名方式。
 
@@ -26,7 +26,7 @@ type: "post"
 
 ### 使用 GPG 进行 commit/tag 签名
 
-使用 GPG 对 commit 进行签名，通常有一下几步：
+使用 GPG 对 commit 进行签名，通常有以下几步：
 
 * 检查本地是否有 GPG key
 
@@ -149,7 +149,7 @@ $ git commit -S -m "ssh commit sign"
 
 * 确保有 X.509 证书
 
-可以用 `smimesign --list-keys` 查看本地是否有证书存在，如果没有则可以在公共 CA 进行购买。本文演示用了自签名的证书并倒入了 Keychain Access，证书信息如下：
+可以用 `smimesign --list-keys` 查看本地是否有证书存在，如果没有则可以在公共 CA 进行购买。本文演示用了自签名的证书并导入了 Keychain Access，证书信息如下：
 
 ```
 $ smimesign --list-keys
@@ -166,14 +166,14 @@ Algorithm: SHA256-RSA
 
 * 配置 Git config
 
-通过配置 Git config 来告知 Git 使用 X.509 证书进行签名。如果是对所有仓库进行配置，则之行如下命令：
+通过配置 Git config 来告知 Git 使用 X.509 证书进行签名。如果是对所有仓库进行配置，则执行如下命令：
 
 ```
 $ git config --global gpg.x509.program smimesign
 $ git config --global gpg.format x509
 ```
 
-如果只是针对单个仓库，之行如下命令即可：
+如果只是针对单个仓库，执行如下命令即可：
 
 ```
 $ cd PATH-TO-REPOSITORY
@@ -301,3 +301,6 @@ https://oauth2.sigstore.dev/auth/auth?access_type=online&client_id=sigstore&code
 2. 因为 Gitsign 的临时密钥只在短时间内有效，使用标准的 x509 验证会认为证书过期后无效。验证需要包括通过 Rekor 进行的验证，以验证证书在使用时是否有效。
 
 sigstore 团队期望能和 GitHub 团队通过协作在将来解决这个问题，让验证变成绿色的 `Verified`。
+
+
+可以看到用 gitsign 进行签名的时候，不需要本地先生成用户签名的 key，在执行 commit 的时候会从 fulcio 获取用于签名的证书，然后用这些证书信息对 commit 进行签名，并将签名信息上传到 rekor。整个过程像 **keyless** 一样。更多关于 flucio、rekor 的内容，可以查阅[sigstore 官网](https://www.sigstore.dev/)。
