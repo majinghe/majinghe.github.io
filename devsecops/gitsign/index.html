@@ -1,0 +1,148 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>gitsign，一种keyless 的方式来对 git commit 进行签名验证 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/devsecops/gitsign/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta property="og:description" content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/devsecops/gitsign/"><meta property="article:published_time" content="2022-10-11T13:05:42+08:00"><meta property="article:modified_time" content="2022-10-11T13:05:42+08:00"><meta itemprop=name content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta itemprop=description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta itemprop=datePublished content="2022-10-11T13:05:42+08:00"><meta itemprop=dateModified content="2022-10-11T13:05:42+08:00"><meta itemprop=wordCount content="2387"><meta itemprop=keywords content="Security,Image,Cosign,"><meta name=twitter:card content="summary"><meta name=twitter:title content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta name=twitter:description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>gitsign，一种keyless 的方式来对 git commit 进行签名验证</h1><div class=post-meta><span class=post-time>2022-10-11</span><div class=post-category><a href=/categories/devsecops/>DevSecOps</a></div><span class=more-meta>约 2387 字</span>
+<span class=more-meta>预计阅读 5 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#为何要进行-committag-签名>为何要进行 commit/tag 签名</a></li><li><a href=#committag-进行签名的几种方法>commit/tag 进行签名的几种方法</a><ul><li><a href=#使用-gpg-进行-committag-签名>使用 GPG 进行 commit/tag 签名</a></li><li><a href=#使用-ssh-进行-committag-签名>使用 SSH 进行 commit/tag 签名</a></li><li><a href=#使用-x509-进行-committag-签名>使用 X.509 进行 commit/tag 签名</a></li></ul></li><li><a href=#关于-gitsign>关于 gitsign</a><ul><li><a href=#gitsign-的安装>gitsign 的安装</a></li><li><a href=#gitsign-的使用>gitsign 的使用</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=为何要进行-committag-签名>为何要进行 commit/tag 签名</h2><p>对于 commit/tag 签名，可能大家的直观感受就是 GitHub 上一个绿色的 <code>Verified</code> 标志：</p><p><img src=images/verified.png alt=verified></p><p>至于为什么需要对 git commit/tag 进行签名的原因一言以蔽之就是：<strong>证明代码的提交来自真正的作者，防止提交的代码被篡改，保证提交代码的安全性</strong>。</p><p>如果不对 commit/tag 进行签名，可以通过 git 的 <code>--author="Author Name &lt;email@address.com>"</code> 来对 commit 信息的作者信息进行篡改，然后提交，这就导致了代码提交着有可能并不是真实的作者本人，如果提交的代码中有恶意代码，会对既有代码造成危害。签名验证就是为了保证代码的提交着和作者是同一个人。</p><p>对 commit/tag 进行签名验证的方法比较多，主流的有 GPG、SSH、X.509 证书等这种需要自己维护本地 key 的方式，也有 sigstore 新推出的 gitsign 这一 keyless 的签名方式。</p><h2 id=committag-进行签名的几种方法>commit/tag 进行签名的几种方法</h2><h3 id=使用-gpg-进行-committag-签名>使用 GPG 进行 commit/tag 签名</h3><p>使用 GPG 对 commit 进行签名，通常有一下几步：</p><ul><li>检查本地是否有 GPG key</li></ul><p>使用如下命令查看本地是否有存在的 GPG key：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ gpg --list-secret-keys --keyid-format=long
+</code></pre></td></tr></table></div></div><p>如果本地有现成的 key 而且可用则可以直接用来在 GitHub 上进行配置并进行使用。如果没有现成的 key 或者现有的 key 已经过期，则可以根据下面的步骤生成新的 key。</p><ul><li>（optional）生成 GPG key</li></ul><p>GPG key 的生成可以通过命令 <code>gpg --full-generate-key</code> 来进行，详细步骤可以查看过往博客<a href=../../devsecops/secret-encrypt.md>Kubernetes secrets 加密的几种方式</a>。</p><p>生成之后可以用第一步中的命令进行查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ gpg --list-secret-keys --keyid-format=long
+sec   rsa4096/7FECE0B631E4C7A4 2022-10-04 [SC] [expires: 2023-10-04]
+      F34E4D7D1BCD43FD20C2D0817FECE0B631E4C7A4
+uid                 [ultimate] xiaomage (commit signature) &lt;devops008@sina.com&gt;
+</code></pre></td></tr></table></div></div><ul><li>添加 GPG key 到源代码托管平台</li></ul><p>以 GitHub 为例说明如何讲 GPG key 添加到相应的源代码托管平台（其他系统类似）。</p><p>添加之前先要 list 出 GPG public key，使用如下命令即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ gpg --armor --export 7FECE0B631E4C7A4
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQINBGM8UokBEADIWM5kqfYZ4xvJLLaBVoVl0dp48PjUNydg4SHmjh7sWYF8GTEm
+.....................YOUR GPG PUBLIC KEY........................
+1QwgprVd9P4iOXMxlL4MKSvHVfA+146jO3akdnQ5Hhb387XFXUUykq9ZOaWnlOW8
+1EkQDhI3xZ5HOs4i677fNkrRypyt4jnXXw==
+=tWFF
+-----END PGP PUBLIC KEY BLOCK-----
+</code></pre></td></tr></table></div></div><blockquote><p><code>7FECE0B631E4C7A4</code> 是上一步 list 出来的 GPG key ID。</p></blockquote><p>在 Settings &ndash;> SSH and GPG keys 中选择 <code>New GPG key</code> 并将上述内容粘贴进去点击 <code>Add GPG key</code> 即可。</p><ul><li>配置 Git config</li></ul><p>通过配置 Git config 来告知 Git 使用 GPG 进行签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git config --global user.signingkey YOUR-GPG-KEY-ID
+</code></pre></td></tr></table></div></div><p>本文示例的 GPG key ID 为 <code>7FECE0B631E4C7A4</code>。</p><ul><li>签名 commit</li></ul><p>在代码变更之后使用 <code>-S</code> 进行 commit 签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git commit -S -m &#34;gpg commit sign demo show&#34;
+</code></pre></td></tr></table></div></div><p>在代码被推送到 GitHub 上，可以看到绿色的 <code>Verified</code> 徽章：</p><p><img src=images/verified-badge.png alt=verified-badge></p><p>使用同样的方法也可以对 tag 进行签名。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git tag -S tag_name -m &#34;tag sign message&#34;
+$ git push --tags
+</code></pre></td></tr></table></div></div><p>在 tags 界面查看即可。在后续的演示中 tag 的签名均是一样的，不再重复演示。</p><h3 id=使用-ssh-进行-committag-签名>使用 SSH 进行 commit/tag 签名</h3><p>使用 SSH 对 commit/tag 签名的过程和使用 GPG 是一样的，首先需要一对 SSH key，可使用本地已有的，也可以使用 <code>ssh-keygen</code> 命令重新创建一对。再将 SSH key 添加到 GitHub 账号上，方法与 GPG 的添加一致。唯一有区别的在于以下几点：</p><ul><li>将 SSH key 添加到 ssh-agent</li></ul><p>使用 <code>ssh-add</code> 命令将 SSH key 的 private key 添加到 ssh-agent，同时会添加 passphrase 到 keychain（如有 passpharse 的话）：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ ssh-add ~/.ssh/id_rsa_commit_sign
+Identity added: /Users/xiaomage/.ssh/id_rsa_commit_sign (devops008@sina.com)
+</code></pre></td></tr></table></div></div><ul><li>配置 Git config</li></ul><p>通过配置 Git config 来告知 Git 使用 SSH 进行签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git config --global user.signingkey YOUR-SSH-PUBLIC-KEY&#34;
+</code></pre></td></tr></table></div></div><blockquote><p>YOUR-SSH-PUBLIC-KEY 为生成或者使用既有的 SSH public key。</p></blockquote><ul><li>签名 commit</li></ul><p>在进行代码变更之后使用如下命令进行签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git commit -S -m &#34;ssh commit sign&#34;
+[main a3bb8ae] ssh commit sign
+ 1 file changed, 1 insertion(+)
+</code></pre></td></tr></table></div></div><p>推送代码到 GitHub，可以看到有了绿色的 <code>Verified</code> 徽章，可以查看签名信息：</p><p><img src=images/ssh-commit-sign.png alt=ssh-commit-sign></p><p>从详细的签名信息可以看到是通过 SSH 进行签名的（列出了 SSH Key Fingerprint）。</p><h3 id=使用-x509-进行-committag-签名>使用 X.509 进行 commit/tag 签名</h3><p><a href=https://github.com/github/smimesign>Smimesign</a> 就是一种可以用 x509 证书来对 commit/tag 进行签名的方法。使用 Smimesign 进行签名的步骤如下：</p><ul><li>确保有 X.509 证书</li></ul><p>可以用 <code>smimesign --list-keys</code> 查看本地是否有证书存在，如果没有则可以在公共 CA 进行购买。本文演示用了自签名的证书并倒入了 Keychain Access，证书信息如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ smimesign --list-keys
+       ID: 2dd0bea94c9e6a55c9f4b86e78b7b9f2a976c96d
+      S/N: b5c3f7f30bbbd1b7
+Algorithm: SHA256-RSA
+ Validity: 2022-10-11 11:59:46 +0000 UTC - 2023-10-11 11:59:46 +0000 UTC
+   Issuer: CN=xiaomage.devops.com,OU=MKT,O=JH,L=DL,ST=LN,C=CN
+  Subject: CN=xiaomage.devops.com,OU=MKT,O=JH,L=DL,ST=LN,C=CN
+   Emails: devops008@sina.com
+</code></pre></td></tr></table></div></div><blockquote><p>smimesign 的安装可以查看<a href=https://github.com/github/smimesign#installation>安装指南</a>。</p></blockquote><ul><li>配置 Git config</li></ul><p>通过配置 Git config 来告知 Git 使用 X.509 证书进行签名。如果是对所有仓库进行配置，则之行如下命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git config --global gpg.x509.program smimesign
+$ git config --global gpg.format x509
+</code></pre></td></tr></table></div></div><p>如果只是针对单个仓库，之行如下命令即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ cd PATH-TO-REPOSITORY
+$ git config --local gpg.x509.program smimesign
+$ git config --local gpg.format x509
+</code></pre></td></tr></table></div></div><p>配置签名的 <code>key</code>，也即上述 list 出来的 certificate ID：<code>2dd0bea94c9e6a55c9f4b86e78b7b9f2a976c96d</code>。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git config --global user.signingkey 2dd0bea94c9e6a55c9f4b86e78b7b9f2a976c96d
+</code></pre></td></tr></table></div></div><ul><li>签名 commit/tag</li></ul><p>在进行代码变更之后使用如下命令进行签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ git add . &amp;&amp; git commit -S -m &#34;x509 certificate sign demo&#34;
+[main 71ba9bd] x509 certificate sign demo
+ 1 file changed, 1 deletion(-)
+</code></pre></td></tr></table></div></div><p>推送代码到 GitHub，可以查看签名验证信息：</p><p><img src=images/x509-certificate-sign.png alt=x509-certificate-sign></p><blockquote><p>显示 <code>Unverified</code> 是因为使用了自签名的证书，无法被 GitHub 信任。</p></blockquote><p>以上可以看出，不管是使用 GPG、SSH 还是 X.509 证书对于 commit/tag 进行签名，本质都是用存储在本地的 secret key 进行签名的。这需要用户必须小心保护好保存在本地的签名 key。而下面要介绍的 gitsign 却是一种不需要自身维护本地 key 的签名方法。</p><h2 id=关于-gitsign>关于 gitsign</h2><p><a href=https://github.com/sigstore/gitsign>gitsign</a> 是 <a href=https://github.com/sigstore>sigstore</a> 的一个开源项目，通过 keyless 的方式进行 Git 签名。gitsign 受启发于 <a href=https://github.com/github/smimesign>smimesign</a> 项目，但是最大的不同是使用 keyless 的方式。</p><h3 id=gitsign-的安装>gitsign 的安装</h3><p>gitsign 的安装非常方便，可以使用 Homebrew 进行安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>brew install sigstore/tap/gitsign
+</code></pre></td></tr></table></div></div><p>也可以通过 <code>go</code> 命令进行安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>go install github.com/sigstore/gitsign@latest
+</code></pre></td></tr></table></div></div><p>通过 <code>--help</code> 或者 <code>-v</code> 来查看安装是否成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>gitsign version v0.3.1
+parsed config:
+{
+  &#34;Fulcio&#34;: &#34;https://fulcio.sigstore.dev&#34;,
+  &#34;Rekor&#34;: &#34;https://rekor.sigstore.dev&#34;,
+  &#34;ClientID&#34;: &#34;sigstore&#34;,
+  &#34;RedirectURL&#34;: &#34;&#34;,
+  &#34;Issuer&#34;: &#34;https://oauth2.sigstore.dev/auth&#34;,
+  &#34;ConnectorID&#34;: &#34;&#34;,
+  &#34;LogPath&#34;: &#34;&#34;
+}
+</code></pre></td></tr></table></div></div><blockquote><p>目前最新版本就是 <code>0.3.1</code>。</p></blockquote><h3 id=gitsign-的使用>gitsign 的使用</h3><p>gitsign 使用之前，需要先进行配置，如果是针对单个仓库，执行如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>cd /path/to/my/repository
+git config --local commit.gpgsign true  # Sign all commits
+git config --local tag.gpgsign true  # Sign all tags
+git config --local gpg.x509.program gitsign  # Use gitsign for signing
+git config --local gpg.format x509  # gitsign expects x509 args
+</code></pre></td></tr></table></div></div><p>如果配置对所有仓库生效，执行如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>git config --global commit.gpgsign true  # Sign all commits
+git config --global tag.gpgsign true  # Sign all tags
+git config --global gpg.x509.program gitsign  # Use gitsign for signing
+git config --global gpg.format x509  # gitsign expects x509 args
+</code></pre></td></tr></table></div></div><p>接着使用 <code>git commit</code> 进行代码提交：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>git commit --allow-empty --message=&#34;Signed commit&#34;
+</code></pre></td></tr></table></div></div><p>浏览器会弹出如下界面：</p><p><img src=images/sigstore-page.png alt=sigstore-page></p><p>选择一种登录方式，本文选择使用 GitHub 账号进行登录，点击 <code>Log in with GitHub</code>，随后会跳转到<strong>http://localhost:55378/auth/callback?code=prlznslbnfteh7w7xscqcpiq3&state=2Fd3Pr0UlZa828WOi2HnPibGzIn</strong>并出现 <strong>Sigstore Auth Successful</strong> 的界面：</p><p><img src=images/sigstore-succ.png alt=sigstore-succ></p><p>签名结束会在命令行有如下输出：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Your browser will now be opened to:
+https://oauth2.sigstore.dev/auth/auth?access_type=online&amp;client_id=sigstore&amp;code_challenge=p1jWW0LGMOfaNgB2czu2jR5Dhhr6rMW4yH4byuN0kBM&amp;code_challenge_method=S256&amp;nonce=2Fd3PpOa33YuYuuPPBNLECv2Uge&amp;redirect_uri=http%3A%2F%2Flocalhost%3A55378%2Fauth%2Fcallback&amp;response_type=code&amp;scope=openid+email&amp;state=2Fd3Pr0UlZa828WOi2HnPibGzIn
+[main e24636b] Signed commit
+</code></pre></td></tr></table></div></div><p>接着推送到 GitHub 对应的仓库即可，在 commit 界面看到显示为**<code>Unverified</code>**：</p><p><img src=images/github-unverified.png alt=unverified></p><p>点击 Unverified 可以看到签名证书的信息：</p><p><img src=images/verified-cert.png alt=verified-cert></p><p>之所以显示 <code>Unverified</code> 是因为：</p><ol><li>sigstore 的 CA root 并不是 GitHub trust root 的一部分</li><li>因为 Gitsign 的临时密钥只在短时间内有效，使用标准的 x509 验证会认为证书过期后无效。验证需要包括通过 Rekor 进行的验证，以验证证书在使用时是否有效。</li></ol><p>sigstore 团队期望能和 GitHub 团队通过协作在将来解决这个问题，让验证变成绿色的 <code>Verified</code>。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-10-11</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/security/>Security</a>
+<a href=/tags/image/>Image</a>
+<a href=/tags/cosign/>Cosign</a></div><nav class=post-nav><a class=next href=/devsecops/kics/><span class="next-text nav-default">使用 KICS 来保障基础设施即代码（IaC）的安全</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
