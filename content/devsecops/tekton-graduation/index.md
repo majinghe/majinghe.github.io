@@ -12,7 +12,7 @@ type: "post"
 本文翻译自 tekton 官网 blog：[Tekton Graduation](https://tekton.dev/blog/2022/10/26/tekton-graduation/)。作者 Andrea Frittoli。已经获得了原作者的翻译许可。
 
 
-我们非常高兴地宣布 Tekton 在持续交付基金会（CDF）中已经达到了可以毕业的状态。CDF 技术监督委员会（TOC）进行了公开[投票](https://lists.cd.foundation/g/cdf-toc/topic/94265202#861)来决定 Tekton 的毕业状态，结果是 TOC 们达成了一直。Tekton 社区对于此次投票结果感到非常自豪，并且将继续工作来让 Tekton 对终端用户变得更好和更安全。
+我们非常高兴地宣布 Tekton 在持续交付基金会（CDF）中已经达到了可以毕业的状态。CDF 技术监督委员会（TOC）进行了公开[投票](https://lists.cd.foundation/g/cdf-toc/topic/94265202#861)来决定 Tekton 的毕业状态，结果是 TOC 们达成了一致。Tekton 社区对于此次投票结果感到非常自豪，并且将继续工作来让 Tekton 对终端用户变得更好和更安全。
 
 本篇博客我将探索一下 Tekton 的历史，它的“毕业之旅”以及项目的一些重要里程碑。
 
