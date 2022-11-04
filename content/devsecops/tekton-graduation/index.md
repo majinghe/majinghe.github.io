@@ -89,6 +89,10 @@ Tekton 项目的贡献和贡献者随着时间的变化。数据来自[devstats]
 
 每个项目都可以扩展社区范围内的政策。Pipeline 在持续着它的月度发版，它每年为 LTS 选择四个版本。
 
+![pipeline-release-support](images/pipeline-release-support.png)
+
+Tekton Pipeline 发版和支持窗口。
+
 
 ## 毕业
 
