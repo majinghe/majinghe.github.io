@@ -1,17 +1,15 @@
 ---
-title: "gitsign，一种keyless 的方式来对 git commit 进行签名验证"
-description: "gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"
+title: "使用 Policy Controller 实现签名镜像在 Kubernetes 集群上的部署"
+description: "使用 Policy Controller 可以实现只有被签名验证通过的镜像方可被部署到 Kubernetes 集群上"
 author: 马景贺（小马哥）
-image: "images/gotc-ospo.jpg"
+image: "images/overview.png"
 categories: ["DevSecOps"]
-tags: ["Security","Image","Cosign"]
-date: 2022-10-11T13:05:42+08:00
+tags: ["Security","Image","Cosign","Policy Controller"]
+date: 2023-04-27T13:05:42+08:00
 type: "post"
 ---
 
-# 使用 Policy Controller 实现签名镜像在 Kubernetes 集群上的部署
-
-之前的文章中写了用 cosign 对于容器镜像进行签名和验证，避免容器镜像被篡改。而如何确保只有被签名的镜像才能被部署到 Kubernetes 集群上呢？
+[之前的文章](https://majinghe.github.io/devsecops/cosign/)中写了用 cosign 对于容器镜像进行签名和验证，避免容器镜像被篡改。而如何确保只有被签名的镜像才能被部署到 Kubernetes 集群上呢？
 
 答案就是：**Policy Controller**。
 
