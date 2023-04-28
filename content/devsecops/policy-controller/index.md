@@ -91,7 +91,7 @@ EOF
 
 需要注意的是，key 的形式有多种，详情可以查看 [Sigstore 官网之 Configuring key authorities](https://docs.sigstore.dev/policy-controller/overview/#configuring-key-authorities)。
 
-接着使用过往文章[使用 cosign 来签名和验证 OCI 镜像，并和 Tekton CI/CD 集成](https://majinghe.github.io/devsecops/cosign/)中的方法，使用 cosign 来生成一对 key（cosign.key 和 cosign.pub），再使用[Demo 库]()的代码和 `Dockerfile` 构建一个镜像并用 cosign 镜像签名：
+接着使用过往文章[使用 cosign 来签名和验证 OCI 镜像，并和 Tekton CI/CD 集成](https://majinghe.github.io/devsecops/cosign/)中的方法，使用 cosign 来生成一对 key（cosign.key 和 cosign.pub），再使用[Demo 库](https://jihulab.com/majinghe/go-demo)的代码和 `Dockerfile` 构建一个镜像并用 cosign 镜像签名：
 
 ```
 $ docker build -t dllhb/sigstore-cip:0.1
