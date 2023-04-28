@@ -1,0 +1,126 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>gitsign，一种keyless 的方式来对 git commit 进行签名验证 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/devsecops/policy-controller/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta property="og:description" content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/devsecops/policy-controller/"><meta property="article:published_time" content="2022-10-11T13:05:42+08:00"><meta property="article:modified_time" content="2022-10-11T13:05:42+08:00"><meta itemprop=name content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta itemprop=description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><meta itemprop=datePublished content="2022-10-11T13:05:42+08:00"><meta itemprop=dateModified content="2022-10-11T13:05:42+08:00"><meta itemprop=wordCount content="1210"><meta itemprop=keywords content="Security,Image,Cosign,"><meta name=twitter:card content="summary"><meta name=twitter:title content="gitsign，一种keyless 的方式来对 git commit 进行签名验证"><meta name=twitter:description content="gitsign 是 sigstore 的一个开源项目，通过 keyless 的方式对 git commit 进行签名验证，保证软件供应链安全"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>gitsign，一种keyless 的方式来对 git commit 进行签名验证</h1><div class=post-meta><span class=post-time>2022-10-11</span><div class=post-category><a href=/categories/devsecops/>DevSecOps</a></div><span class=more-meta>约 1210 字</span>
+<span class=more-meta>预计阅读 3 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#使用-policy-controller-实现签名镜像在-kubernetes-集群上的部署>使用 Policy Controller 实现签名镜像在 Kubernetes 集群上的部署</a><ul><li><a href=#什么是-policy-controller>什么是 Policy Controller</a></li><li><a href=#policy-controller-的安装>Policy Controller 的安装</a></li><li><a href=#policy-controller-的使用>Policy Controller 的使用</a></li></ul></li></ul></nav></div></div><div class=post-content><h1 id=使用-policy-controller-实现签名镜像在-kubernetes-集群上的部署>使用 Policy Controller 实现签名镜像在 Kubernetes 集群上的部署</h1><p>之前的文章中写了用 cosign 对于容器镜像进行签名和验证，避免容器镜像被篡改。而如何确保只有被签名的镜像才能被部署到 Kubernetes 集群上呢？</p><p>答案就是：<strong>Policy Controller</strong>。</p><h2 id=什么是-policy-controller>什么是 Policy Controller</h2><p><code>Policy Controller</code> 是一个 Admission Controller，通过对来自于 <code>cosign</code> 的供应链元数据进行验证，进而完成在 Kubernetes 集群上的策略执行。<code>Policy Controller</code> 能够确保 Kubernetes 集群上运行的容器镜像和用户确认的镜像是一致的，能够有效保障云原生应用程序安全。</p><p>Cosign 和 Policy Controller 结合使用，能够实现：只有被正确签名的镜像，在验证通过后方可部署到对应的 Kubernetes 集群上。大概原理图如下：</p><p><img src=images/overview.png alt=overview></p><h2 id=policy-controller-的安装>Policy Controller 的安装</h2><p>可以使用 <a href=https://github.com/sigstore/helm-charts/tree/main/charts/policy-controller>Policy Controller Helm Chart</a> 来完成 Policy Controller 的安装：</p><ul><li>Step 1: 添加 Helm Repo</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+$ helm repo add sigstore https://sigstore.github.io/helm-charts
+&#34;sigstore&#34; has been added to your repositories
+</code></pre></td></tr></table></div></div><ul><li>Step 2：Helm Install</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ helm repo update
+...Successfully got an update from the &#34;sigstore&#34; chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+$ helm install policy-controller -n cosign-system sigstore/policy-controller --devel
+NAME: policy-controller
+LAST DEPLOYED: Mon Apr 10 23:47:27 2023
+NAMESPACE: cosign-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+</code></pre></td></tr></table></div></div><ul><li>Step 3：Installation Check</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n cosign-system get pods
+NAME                                                READY   STATUS    RESTARTS   AGE
+policy-controller-policy-webhook-55987c6b86-29kvk   1/1     Running   0          4m32s
+policy-controller-webhook-56ff86dff9-xs69r          1/1     Running   0          4m32s
+</code></pre></td></tr></table></div></div><h2 id=policy-controller-的使用>Policy Controller 的使用</h2><p>Policy Controller 之所以能够实现只有签名验证通过的镜像才能够被部署到目标 Kubernetes 上的一个重要因素是 <code>ClusterImagePolicy</code>。</p><p><code>ClusterImagePolicy</code> 指定了验证镜像的 <code>Policy</code>，只有满足 <code>Policy</code> 的镜像才会被“认可”，才能被部署到集群上。而满足的方式就是使用 <code>spec.authorities.key</code> 去对镜像（已经签名了的镜像）进行验证。</p><p>因此需要创建一个 <code>ClusterImagePolicy</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>cat &lt;&lt; EOF | kubectl apply -f - 
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: cosign-cip
+spec:
+  images:
+  - glob: &#34;**&#34;
+  authorities:
+    - key:
+        hashAlgorithm: sha256
+        data: |
+          -----BEGIN PUBLIC KEY-----
+          content in cosign.pub generated by you
+          -----END PUBLIC KEY-----
+EOF
+</code></pre></td></tr></table></div></div><p>需要注意的是，key 的形式有多种，详情可以查看 <a href=https://docs.sigstore.dev/policy-controller/overview/#configuring-key-authorities>Sigstore 官网之 Configuring key authorities</a>。</p><p>接着使用过往文章<a href=https://majinghe.github.io/devsecops/cosign/>使用 cosign 来签名和验证 OCI 镜像，并和 Tekton CI/CD 集成</a>中的方法，使用 cosign 来生成一对 key（cosign.key 和 cosign.pub），再使用<a href>Demo 库</a>的代码和 <code>Dockerfile</code> 构建一个镜像并用 cosign 镜像签名：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker build -t dllhb/sigstore-cip:0.1
+$ docker push dllhb/sigstore-cip:0.1
+$ cosgin sign --key cosign.key dllhb/sigstore-cip:0.1
+</code></pre></td></tr></table></div></div><p>然后将此镜像部署到目标 Kubernetes 集群上。</p><p>在此之前，需要在 Kubernetes 目标集群上的目标 namespace 上开启容器镜像验证功能：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl create ns cosign-test
+$ kubectl label namespace cosign-test policy.sigstore.dev/include=true
+</code></pre></td></tr></table></div></div><p>然后以上述签名的镜像为准，创建一个 <code>deploymet</code> 并查看 <code>pod</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>## Create deployment
+$ kubectl -n cosign-test create deploy signed --image=dllhb/sigstore-cip:0.1
+deployment.apps/signed created
+
+## Check the pods status
+$ kubectl -n cosign-test get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+signed-d96ddf479-nglrk   1/1     Running   0          43m
+</code></pre></td></tr></table></div></div><p>可以看到签名的镜像被成功部署。</p><p>对 Demo 库中的代码进行简单修改，再次构建一个新镜像：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ docker build -t dllhb/sigstore-cip:0.2
+$ docker push dllhb/sigstore-cip:0.2
+</code></pre></td></tr></table></div></div><blockquote><p>注意，此次没有对镜像做签名。</p></blockquote><p>以此镜像为基准，再次创建一个 <code>deployment</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n cosign-test create deploy unsigned --image=dllhb/sigstore-cip:0.2
+error: failed to create deployment: admission webhook &#34;policy.sigstore.dev&#34; denied the request: validation failed: failed policy: cosign-cip: spec.template.spec.containers[0].image
+index.docker.io/dllhb/sigstore-cip@sha256:9ea9f50d0651e5c29804d1768bac11e5b3424fd1ee7b871d8db2edb817fd47ea signature key validation failed for authority authority-0 for index.docker.io/dllhb/sigstore-cip@sha256:9ea9f50d0651e5c29804d1768bac11e5b3424fd1ee7
+b871d8db2edb817fd47ea: no matching signatures:
+</code></pre></td></tr></table></div></div><p>返回结果显示，创建失败，原因是 <code>admission webhook "policy.sigstore.dev" denied the request</code>。也就是 <code>Policy Controller</code> 阻止了未经过签名的镜像被部署到目标集群上。</p><p>在 Policy Controller Webhook pod 中可以找到如下 log：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl -n cosign-system logs -f policy-controller-webhook-56ff86dff9-7m9qm
+{&#34;level&#34;:&#34;error&#34;,&#34;ts&#34;:&#34;2023-04-28T13:47:31.881Z&#34;,&#34;logger&#34;:&#34;policy-controller&#34;,&#34;caller&#34;:&#34;webhook/validation.go:47&#34;,&#34;msg&#34;:&#34;error validating signatures: no matching signatures:\n&#34;,&#34;commit&#34;:&#34;89ef904-dirty&#34;,&#34;knative.dev/kind&#34;:&#34;apps/v1, Kind=Deployment&#34;,&#34;knative.dev/namespace&#34;:&#34;cosign-test&#34;,&#34;knative.dev/name&#34;:&#34;unsigned&#34;,&#34;knative.dev/operation&#34;:&#34;CREATE&#34;,&#34;knative.dev/resource&#34;:&#34;apps/v1, Resource=deployments&#34;,&#34;knative.dev/subresource&#34;:&#34;&#34;,&#34;knative.dev/userinfo&#34;:&#34;docker-for-desktop&#34;,&#34;stacktrace&#34;:&#34;github.com/sigstore/policy-controller/pkg/webhook.valid\n\tgithub.com/sigstore/policy-controller/pkg/webhook/validation.go:47\ngithub.com/sigstore/policy-controller/pkg/webhook.ValidatePolicySignaturesForAuthority\n\tgithub.com/sigstore/policy-controller/pkg/webhook/validator.go:752\ngithub.com/sigstore/policy-controller/pkg/webhook.ValidatePolicy.func1\n\tgithub.com/sigstore/policy-controller/pkg/webhook/validator.go:529&#34;}
+</code></pre></td></tr></table></div></div><p>因此，Cosign + Policy Controller 的组合能够完成容器镜像的签名，并且在被验证通过后才可以部署到 Kubernetes 集群上，能够有效地防止容器镜像被篡改，提高云原生应用程序的安全性。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2022-10-11</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/security/>Security</a>
+<a href=/tags/image/>Image</a>
+<a href=/tags/cosign/>Cosign</a></div><nav class=post-nav><a class=prev href=/devsecops/gitsign/><i class="iconfont icon-left"></i><span class="prev-text nav-default">gitsign，一种keyless 的方式来对 git commit 进行签名验证</span>
+<span class="prev-text nav-mobile">上一篇</span></a>
+<a class=next href=/devsecops/kics/><span class="next-text nav-default">使用 KICS 来保障基础设施即代码（IaC）的安全</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
