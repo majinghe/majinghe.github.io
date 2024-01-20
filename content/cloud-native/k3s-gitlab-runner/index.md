@@ -2,9 +2,9 @@
 title: "k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验"
 description: "在 k3s 上使用 GitLab Runner Operator 安装 Runner"
 author: 马景贺（小马哥）
-categories: ["Security"]
-tags: ["Cloud Native","container image"]
-date: 2021-11-16T13:05:42+08:00
+categories: ["Cloud-Native"]
+tags: ["Cloud Native","K3S","GitLab Runner"]
+date: 2024-01-20T13:05:42+08:00
 type: "post"
 ---
 
