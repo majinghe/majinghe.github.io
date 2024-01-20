@@ -1,0 +1,381 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="在 k3s 上使用 GitLab Runner Operator 安装 Runner"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/cloud-native/k3s-gitlab-runner/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验"><meta property="og:description" content="在 k3s 上使用 GitLab Runner Operator 安装 Runner"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/cloud-native/k3s-gitlab-runner/"><meta property="article:published_time" content="2021-11-16T13:05:42+08:00"><meta property="article:modified_time" content="2021-11-16T13:05:42+08:00"><meta itemprop=name content="k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验"><meta itemprop=description content="在 k3s 上使用 GitLab Runner Operator 安装 Runner"><meta itemprop=datePublished content="2021-11-16T13:05:42+08:00"><meta itemprop=dateModified content="2021-11-16T13:05:42+08:00"><meta itemprop=wordCount content="3145"><meta itemprop=keywords content="Cloud Native,container image,"><meta name=twitter:card content="summary"><meta name=twitter:title content="k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验"><meta name=twitter:description content="在 k3s 上使用 GitLab Runner Operator 安装 Runner"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>k3s x GitLab Runner Operator，GitLab CI 云原生构建新体验</h1><div class=post-meta><span class=post-time>2021-11-16</span><div class=post-category><a href=/categories/security/>Security</a></div><span class=more-meta>约 3145 字</span>
+<span class=more-meta>预计阅读 7 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#k3s-的安装>k3s 的安装</a></li><li><a href=#gitlab-runner-operator-的安装>GitLab Runner Operator 的安装</a><ul><li><a href=#安装-cert-manager>安装 cert-manager</a></li><li><a href=#安装-operator-lifecycle-manager>安装 Operator Lifecycle Manager</a></li><li><a href=#install-operator>Install Operator</a></li></ul></li><li><a href=#查看安装的-operator>查看安装的 Operator</a></li><li><a href=#使用-operator-创建-gitlab-runner>使用 Operator 创建 GitLab Runner</a><ul><li><a href=#获取-runner-注册-token>获取 Runner 注册 token</a></li><li><a href=#创建包含注册-token-的-secret>创建包含注册 token 的 secret</a></li><li><a href=#创建-runner-crd>创建 Runner CRD</a></li></ul></li><li><a href=#runner-测试>Runner 测试</a></li><li><a href=#过程中遇到的问题及修复方案>过程中遇到的问题及修复方案</a><ul><li><a href=#operators-中-gcrio-镜像不可用问题>operators 中 gcr.io 镜像不可用问题</a></li><li><a href=#pod-中执行-docker-命令>pod 中执行 docker 命令</a></li><li><a href=#github-无法链接>GitHub 无法链接</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p><img src=images/k3s-gitlab-runner.png alt=k3s-gitlab-runner></p><p>GitLab CI 是非常常用的一款 CI/CD 工具，只需要在 <code>.gitlab-ci.yml</code> 文件中用 YAML 语法编写 CI/CD 流水线即可。而 GitLab CI 能够运行的关键组件是 <a href=https://docs.gitlab.com/runner/>GitLab Runner</a>。GitLab Runner 是一个轻量级、高扩展的代理，主要用来执行 GitLab CI/CD 流水线中的 Job，然后将 Job 的执行结果返回 GitLab 实例。</p><p>GitLab Runner 的安装方式有很多种，包括安装包、Docker、Helm Chart 等，本文将用 GitLab Runner Operator 的方式来在 k3s 上安装 GitLab Runner，并执行 CI/CD 流水线。关于其他安装方式的详情，可以查看 <a href=https://docs.gitlab.com/runner/install/>GitLab Runner 安装文档</a>。</p><p><a href=https://gitlab.com/gitlab-org/gl-openshift/gitlab-runner-operator>GitLab Runner Operator</a> 主要是在 Kubernetes 平台上来管理 GitLab Runner。在 Kubernetes 平台上安装 GitLab Runner 有两个先决条件：</p><ul><li>Kubernetes 的版本必须是 v1.21.1 以上</li><li>Cert manager 的版本为 v1.7.1 以上</li></ul><p>本文使用 k3s 来搭建一个 Kubernetes 平台。</p><h2 id=k3s-的安装>k3s 的安装</h2><p><a href=https://www.rancher.cn/k3s/>k3s</a> 是经 CNCF 一致性认证的 Kubernetes 发行版，专为物联网及边缘计算而设计。简言之，k3s 是一个轻量级的 Kubernetes 发行版。</p><p>k3s 的安装非常简单，对于国内用户来讲，执行如下命令可以加速 k3s 的安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -
+[INFO]  Finding release for channel stable
+[INFO]  Using v1.28.5+k3s1 as release
+[INFO]  Downloading hash rancher-mirror.rancher.cn/k3s/v1.28.5-k3s1/sha256sum-amd64.txt
+[INFO]  Downloading binary rancher-mirror.rancher.cn/k3s/v1.28.5-k3s1/k3s
+[INFO]  Verifying binary download
+[INFO]  Installing k3s to /usr/local/bin/k3s
+[INFO]  Skipping installation of SELinux RPM
+[INFO]  Creating /usr/local/bin/kubectl symlink to k3s
+[INFO]  Creating /usr/local/bin/crictl symlink to k3s
+[INFO]  Skipping /usr/local/bin/ctr symlink to k3s, command exists in PATH at /usr/bin/ctr
+[INFO]  Creating killall script /usr/local/bin/k3s-killall.sh
+[INFO]  Creating uninstall script /usr/local/bin/k3s-uninstall.sh
+[INFO]  env: Creating environment file /etc/systemd/system/k3s.service.env
+[INFO]  systemd: Creating service file /etc/systemd/system/k3s.service
+sh: 1014: restorecon: not found
+sh: 1015: restorecon: not found
+[INFO]  systemd: Enabling k3s unit
+Created symlink /etc/systemd/system/multi-user.target.wants/k3s.service → /etc/systemd/system/k3s.service.
+[INFO]  systemd: Starting k3s
+</code></pre></td></tr></table></div></div><p>接着可以查看 k3s 是否安装成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>#查看 k3s 版本
+k3s --version
+k3s version v1.28.5+k3s1 (5b2d1271)
+go version go1.20.12
+
+# 查看 k3s 集群
+kubectl get nodes
+NAME             STATUS   ROLES                  AGE   VERSION
+vm-0-12-ubuntu   Ready    control-plane,master   38s   v1.28.5+k3s1
+</code></pre></td></tr></table></div></div><p>上述命令已经快速构建了一个单节点的 k3s 集群。接下来就可以在这个 k3s 集群上使用 GitLab Runner Operator 来安装 GitLab Runner 了。安装详情可以在 <a href=https://operatorhub.io/operator/gitlab-runner-operator>OperatorHub.io</a> 上查看详细步骤。</p><h2 id=gitlab-runner-operator-的安装>GitLab Runner Operator 的安装</h2><p>在安装之前首先需要安装 cert-manager，使用如下命令可完成安装</p><h3 id=安装-cert-manager>安装 cert-manager</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+
+......太长了，删除一部分输出日志......
+
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+</code></pre></td></tr></table></div></div><blockquote><p>上述过程中安装了 N 多 Kubernetes 资源。</p></blockquote><h3 id=安装-operator-lifecycle-manager>安装 Operator Lifecycle Manager</h3><p>接下来要安装 Operator Lifecycle Manager（OLM），这是一个能够对 Kubernetes 集群上 Operator 进行管理的工具。使用如下命令安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.26.0/install.sh | bash -s v0.26.0
+
+customresourcedefinition.apiextensions.k8s.io/catalogsources.operators.coreos.com created
+customresourcedefinition.apiextensions.k8s.io/clusterserviceversions.operators.coreos.com created
+
+......太长了，删除一部分输出日志......
+
+Waiting for deployment &#34;olm-operator&#34; rollout to finish: 0 of 1 updated replicas are available...
+deployment &#34;olm-operator&#34; successfully rolled out
+deployment &#34;catalog-operator&#34; successfully rolled out
+Package server phase: Installing
+Package server phase: Succeeded
+deployment &#34;packageserver&#34; successfully rolled out
+</code></pre></td></tr></table></div></div><p>可以将上面的版本换成自己想要的版本，比如 <code>v0.22.0</code>。</p><h3 id=install-operator>Install Operator</h3><p>接下来执行如下命令来完成 Operator 的安装：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl create -f https://operatorhub.io/install/stable/gitlab-runner-operator.yaml
+subscription.operators.coreos.com/my-gitlab-runner-operator created
+</code></pre></td></tr></table></div></div><h2 id=查看安装的-operator>查看安装的 Operator</h2><p>使用如下命令查看 Operator 是否安装成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 查看 csv 资源
+$ kubectl get csv -n operators
+NAME                             DISPLAY         VERSION   REPLACES                         PHASE
+gitlab-runner-operator.v1.15.1   GitLab Runner   1.15.1    gitlab-runner-operator.v1.15.0   Succeeded
+
+# 查看 pod 状态
+$ kubectl -n operators get pods
+NAME                                                READY   STATUS    RESTARTS   AGE
+gitlab-runner-controller-manager-5b7f856fc5-fhk2f   2/2     Running   0          20h
+</code></pre></td></tr></table></div></div><p>接下来就可以使用 GitLab Runner Operator 来创建 GitLab Runner 了。</p><h2 id=使用-operator-创建-gitlab-runner>使用 Operator 创建 GitLab Runner</h2><p>本文使用 GitLab 中国发行版——极狐GitLab 来进行测试。极狐GitLab 是 GitLab 除 CE/EE 之外发行的另外一个版本，专门面向中国用户。可以私有化部署，也可以使用 SaaS（jihulab.com)。</p><p>创建 GitLab Runner 之前，需要明确创建什么样的 Runner，是共享的还是专有的，是群组级别的还是项目级别的。关于 GitLab Runner 的作用范围可以查看 <a href=https://docs.gitlab.com/ee/ci/runners/runners_scope.html>GitLab Runner 官方文档</a>。</p><h3 id=获取-runner-注册-token>获取 Runner 注册 token</h3><p>以注册项目 Runner 为例来说，在项目 &ndash;> 设置 &ndash;> CI/CD &ndash;> Runner 中，选择<strong>新建项目 Runner</strong>：</p><p><img src=images/new-runner.png alt=new-runner></p><p>点击新建项目 Runner 选项，在出现的界面中填写好对于的信息，包括 Runner 标签、描述等：</p><p><img src=images/runner-detail-info.png alt=runner-detail></p><p>点击<strong>创建 Runner</strong> 就会出现注册 Runner 的命令，在命令中就有 Runner 注册的 token，默认以 <code>plrt</code> 开头。</p><p><img src=images/runner-token.png alt=runner-token></p><blockquote><p>一定要保存好此 token，后面会用到。</p></blockquote><h3 id=创建包含注册-token-的-secret>创建包含注册 token 的 secret</h3><p>将上一步中获取的 Runner 注册 token 存入下方的 yaml 文件：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>cat &gt; gitlab-runner-secret.yml &lt;&lt; EOF
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: jh-gitlab-runner-secret
+  type: Opaque
+  stringData:
+    runner-registration-token: REPLACE_ME # 上一步中创建的 Runner 注册 token
+  EOF
+</code></pre></td></tr></table></div></div><p>使用如下命令创建 secret</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl  apply -f gitlab-runner-secret.yml
+secret/jh-gitlab-runner-secret created
+</code></pre></td></tr></table></div></div><h3 id=创建-runner-crd>创建 Runner CRD</h3><p>Runner CRD yaml 文件内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>cat &gt; gitlab-runner.yml &lt;&lt; EOF
+apiVersion: apps.gitlab.com/v1beta2
+kind: Runner
+metadata:
+    name: gitlab-runner
+spec:
+    gitlabUrl: https://jihulab.com
+    buildImage: alpine
+    token: jh-gitlab-runner-secret
+EOF
+</code></pre></td></tr></table></div></div><p>参数说明：</p><ul><li><strong>gitlabUrl</strong>：GitLab/极狐GitLab 实例的地址，本文使用极狐GitLab SaaS，地址为 <code>https://jihulab.com</code>。</li><li><strong>token</strong>：上一步创建的 secret 名称。</li></ul><p>使用如下命令完成 Runner CRD 的创建：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl apply -f gitlab-runner.yml
+runner.apps.gitlab.com/jh-gitlab-runner created
+</code></pre></td></tr></table></div></div><p>接着确认一下 Runner CRD 是否创建成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 查看 Runner CRD 资源
+kubectl get runner
+NAME               AGE
+jh-gitlab-runner   20h
+
+# 查看 Runner pod
+$ kubectl  get pods
+NAME                                       READY   STATUS    RESTARTS   AGE
+jh-gitlab-runner-runner-6f7c4bf7dc-r9lzh   1/1     Running   0          16h
+</code></pre></td></tr></table></div></div><p>接着就可以在项目的 Runner 页面查看 Runner 是否注册成功：</p><p><img src=images/runner-succ.png alt=runner-succ></p><p>可以看到标签为有一个该项目专用的 Runner 已经注册成功。接下来测试此 Runner。</p><h2 id=runner-测试>Runner 测试</h2><p>在项目的 <code>.gitlab-ci.yml</code> 文件中写入一个构建容器镜像并推送到极狐GitLab 内置的镜像仓库的 Job 配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>build:
+  image: docker:latest
+  stage: build
+  tags:
+    - jh
+  services:
+    - docker:20.10.7-dind
+  script:
+    - docker login -u &#34;$CI_REGISTRY_USER&#34; -p &#34;$CI_REGISTRY_PASSWORD&#34; $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:v1.0.0 .
+    - docker push $CI_REGISTRY_IMAGE:v1.0.0
+</code></pre></td></tr></table></div></div><p>触发流水线，然后在项目 &ndash;> 构建 &ndash;> 流水线中查看结果：</p><p><img src=images/build-result.png alt=build-result></p><p>可以看到流水线构建成功。再查看构建日志，确认构建此次流水线所需的 Runner 是否为上面创建的 Runner：</p><p><img src=images/build-log.png alt=build-log></p><p>从红色方框的信息看，此次 CI/CD 流水线构建使用的就是上述用 GitLab Runner Operator 创建出来的 Runner。</p><h2 id=过程中遇到的问题及修复方案>过程中遇到的问题及修复方案</h2><h3 id=operators-中-gcrio-镜像不可用问题>operators 中 gcr.io 镜像不可用问题</h3><p>在安装 Operator 的过程中，<code>gitlab-runner-controller-manager</code> 依赖镜像 <code>gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0</code>。由于此镜像在国内无法正常拉取，会导致以下错误：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>kubectl -n operators get pods -w
+NAME                                                READY   STATUS              RESTARTS   AGE
+gitlab-runner-controller-manager-6d88d9d9d4-tdf5m   0/2     ContainerCreating   0          15s
+gitlab-runner-controller-manager-6d88d9d9d4-tdf5m   1/2     ErrImagePull        0          31s
+gitlab-runner-controller-manager-6d88d9d9d4-tdf5m   1/2     ImagePullBackOff    0          32s
+</code></pre></td></tr></table></div></div><p>镜像拉取失败的详细日志：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Warning  Failed     45s                kubelet            Failed to pull image &#34;gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0&#34;: rpc error: code = DeadlineExceeded desc = failed to pull and unpack image &#34;gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0&#34;: failed to resolve reference &#34;gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0&#34;: failed to do request: Head &#34;https://gcr.io/v2/kubebuilder/kube-rbac-proxy/manifests/v0.8.0&#34;: dial tcp 173.194.174.82:443: i/o timeout
+Warning  Failed     45s                kubelet            Error: ErrImagePull
+Normal   Pulled     45s                kubelet            Container image &#34;registry.gitlab.com/gitlab-org/gl-openshift/gitlab-runner-operator/gitlab-runner-operator:v1.15.1&#34; already present on machine
+Normal   Created    45s                kubelet            Created container manager
+Normal   Started    45s                kubelet            Started container manager
+Normal   BackOff    44s (x2 over 45s)  kubelet            Back-off pulling image &#34;gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0&#34;
+Warning  Failed     44s (x2 over 45s)  kubelet            Error: ImagePullBackOff
+Normal   Pulling    29s (x2 over 75s)  kubelet            Pulling image &#34;gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0&#34;
+</code></pre></td></tr></table></div></div><p>提示无法拉取 <code>gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0</code>。解决办法为<strong>将上述镜像替换为 <code>kubesphere/kube-rbac-proxy:v0.8.0</code></strong>。替换完成后，pod 运行正常：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl  -n operators get pods
+NAME                                                READY   STATUS    RESTARTS   AGE
+gitlab-runner-controller-manager-5b7f856fc5-fhk2f   2/2     Running   0          20h
+</code></pre></td></tr></table></div></div><blockquote><p>看这个镜像应该是 kubesphere 制作的，在此感谢 kubesphere 团队所做的贡献。</p></blockquote><h3 id=pod-中执行-docker-命令>pod 中执行 docker 命令</h3><p>上面测试的 Job 是现在在 kubernetes pod 中执行 docker 命令来构建容器镜像：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>build:
+  image: docker:latest
+  stage: build
+  tags:
+    - jh
+  services:
+    - docker:20.10.7-dind
+  script:
+    - docker login -u &#34;$CI_REGISTRY_USER&#34; -p &#34;$CI_REGISTRY_PASSWORD&#34; $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:v1.0.0 .
+    - docker push $CI_REGISTRY_IMAGE:v1.0.0
+</code></pre></td></tr></table></div></div><p>这个过程中其实需要将宿主机的 docker.sock 文件挂在到 Runner pod 里面。这个时候就需要对于 Runner 的 config.toml 文件进行修改了。</p><p>使用 Operator 安装的 Runner，其配置文件以 configmap 的形式存在，可以在 Runner 所在的 namespace 下面查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl  get cm
+NAME                             DATA   AGE
+jh-gitlab-runner-runner-config   6      20h
+</code></pre></td></tr></table></div></div><p>查看上述 configmap 的内容，默认情况下对于 config.toml 文件的描述仅有一下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>  config.toml: |-
+    concurrent = 10
+    check_interval = 30
+    log_level = &#34;info&#34;
+    listen_address = &#39;[::]:9252&#39;
+</code></pre></td></tr></table></div></div><p>在 Runner pod 中查看 <code>config.toml</code> 文件的配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[runners.kubernetes]
+    host = &#34;&#34;
+    bearer_token_overwrite_allowed = false
+    image = &#34;alpine&#34;
+    namespace = &#34;default&#34;
+    namespace_overwrite_allowed = &#34;&#34;
+    node_selector_overwrite_allowed = &#34;&#34;
+    helper_image = &#34;registry.gitlab.com/gitlab-org/ci-cd/gitlab-runner-ubi-images/gitlab-runner-helper-ocp:v16.0.1&#34;
+    poll_timeout = 180
+    pod_labels_overwrite_allowed = &#34;&#34;
+    service_account_overwrite_allowed = &#34;&#34;
+    pod_annotations_overwrite_allowed = &#34;&#34;
+    [runners.kubernetes.pod_security_context]
+    [runners.kubernetes.init_permissions_container_security_context]
+    [runners.kubernetes.build_container_security_context]
+    [runners.kubernetes.helper_container_security_context]
+    [runners.kubernetes.service_container_security_context]
+    [runners.kubernetes.volumes]
+    [runners.kubernetes.dns_config]
+</code></pre></td></tr></table></div></div><p>可以看到在 <code>[runners.kubernetes.volumes]</code> 配置中并没有挂载 docker.sock 文件。这时候就需要通过自定义 config.toml 文件的形式来完成文件的挂载了。整个自定义的过程可以查看<a href=https://docs.gitlab.com/runner/configuration/configuring_runner_operator.html>GitLab config.toml 文件自定义官方文档</a>。</p><p>首先，创建一个 <code>custome-config.toml</code> 文件，写入挂载文件的内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[[runners]]
+  [runners.kubernetes]
+    [runners.kubernetes.volumes]
+      [[runners.kubernetes.volumes.host_path]]
+          name = &#34;docker&#34;
+          mount_path = &#34;/var/run/docker.sock&#34;
+          host_path = &#34;/var/run/docker.sock&#34;
+</code></pre></td></tr></table></div></div><p>然后，以文件的形式创建 configmap：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>$ kubectl create configmap custom-config-toml --from-file config.toml=custom-config.toml
+configmap/custom-config-toml created
+</code></pre></td></tr></table></div></div><p>然后将上述新增的 configmap 添加到 Runner 的 CRD 中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>apiVersion: apps.gitlab.com/v1beta2
+kind: Runner
+metadata:
+  name: jh-gitlab-runner
+spec:
+  gitlabUrl: https://jihulab.com
+  buildImage: alpine
+  token: jh-gitlab-runner-secret
+  config: custom-config-toml
+</code></pre></td></tr></table></div></div><p>以 config 为关键字将自定义的 configmap 内容引入。然后创建 Runner 即可。最后可以在 Runner pod 中看到如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    [runners.kubernetes.volumes]
+      [[runners.kubernetes.volumes.host_path]]
+        name = &#34;docker&#34;
+        mount_path = &#34;/var/run/docker.sock&#34;
+        host_path = &#34;/var/run/docker.sock&#34;
+</code></pre></td></tr></table></div></div><p>说明宿主机的 docker.sock 文件被挂载到了 Runner pod 中，这样就可以在 pod 中使用 docker 命令了。当然，这种方式存在一定的安全问题，建议使用 <code>kaniko</code> 进行镜像构建。详情可以查看过往的技术文章<a href=https://mp.weixin.qq.com/s/3mgiXltSvRqVV_JGUV-qSw>Kaniko- 以一种更安全可靠的方式在Kubernetes平台上构建容器镜像</a>。</p><h3 id=github-无法链接>GitHub 无法链接</h3><p>在安装 Operator 的时候，因为会从 Operator GitHub 仓库拉取资源直接安装，这时候可能会遇到 GitHub 无法链接的问题（看你服务器在哪儿了）。这时候就可以在<a href=https://github.com/operator-framework/operator-lifecycle-manager/>Operator Lifycycle Manager GitHub Repo</a>上看一下内容，把无法拉取的文件内容想办法搞到本地，然后在本地执行即可。比如 <code>install.sh</code>、<code>crds.yml</code>、<code>olm.yml</code>文件。当然，前提是要看懂这些文件里面的内容，适当的时候要做一些调整。当然，调整不会影响安装使用。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2021-11-16</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/cloud-native/>Cloud Native</a>
+<a href=/tags/container-image/>container image</a></div><nav class=post-nav><a class=prev href=/cloud-native/tekton-supply-chain/><i class="iconfont icon-left"></i><span class="prev-text nav-default">Tekton Chains 是如何保证 Tekton 供应链安全的</span>
+<span class="prev-text nav-mobile">上一篇</span></a>
+<a class=next href=/cloud-native/shipwright/><span class="next-text nav-default">使用 shipwright 在 Kubernetes 上构建容器镜像</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2024<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
