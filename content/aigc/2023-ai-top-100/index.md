@@ -9,6 +9,7 @@ date: 2024-01-16T13:05:42+08:00
 type: "post"
 ---
 
+![2023-ai](images/2023-ai-event.jpeg)
 
 自从 2022 年末 ChatGPT 横空出世以来，AIGC 发展的热浪一浪接一浪。The Rundown AI 的作者整理了 2023 年发生在 AI 领域的 100 件大事。原文链接 *https://www.therundown.ai/p/the-biggest-ai-events-in-2023*。
 
