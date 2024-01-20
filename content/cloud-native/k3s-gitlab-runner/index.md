@@ -8,7 +8,7 @@ date: 2021-11-16T13:05:42+08:00
 type: "post"
 ---
 
-![k3s-gitlab-runne](image/k3s-gitlab-runner.png)
+![k3s-gitlab-runner](images/k3s-gitlab-runner.png)
 
 
 GitLab CI 是非常常用的一款 CI/CD 工具，只需要在 `.gitlab-ci.yml` 文件中用 YAML 语法编写 CI/CD 流水线即可。而 GitLab CI 能够运行的关键组件是 [GitLab Runner](https://docs.gitlab.com/runner/)。GitLab Runner 是一个轻量级、高扩展的代理，主要用来执行 GitLab CI/CD 流水线中的 Job，然后将 Job 的执行结果返回 GitLab 实例。
