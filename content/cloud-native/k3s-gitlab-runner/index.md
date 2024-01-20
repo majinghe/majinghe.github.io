@@ -31,7 +31,7 @@ GitLab Runner 的安装方式有很多种，包括安装包、Docker、Helm Char
 k3s 的安装非常简单，对于国内用户来讲，执行如下命令可以加速 k3s 的安装：
 
 ```
-curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -
+$ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -
 [INFO]  Finding release for channel stable
 [INFO]  Using v1.28.5+k3s1 as release
 [INFO]  Downloading hash rancher-mirror.rancher.cn/k3s/v1.28.5-k3s1/sha256sum-amd64.txt
@@ -57,12 +57,12 @@ Created symlink /etc/systemd/system/multi-user.target.wants/k3s.service → /etc
 
 ```
 #查看 k3s 版本
-k3s --version
+$ k3s --version
 k3s version v1.28.5+k3s1 (5b2d1271)
 go version go1.20.12
 
 # 查看 k3s 集群
-kubectl get nodes
+$ kubectl get nodes
 NAME             STATUS   ROLES                  AGE   VERSION
 vm-0-12-ubuntu   Ready    control-plane,master   38s   v1.28.5+k3s1
 ```
@@ -72,10 +72,12 @@ vm-0-12-ubuntu   Ready    control-plane,master   38s   v1.28.5+k3s1
 
 ## GitLab Runner Operator 的安装
 
-在安装之前首先需要安装 cert-manager，使用如下命令可完成安装
+在安装之前首先需要安装 cert-manager。
 
 
 ### 安装 cert-manager 
+
+使用如下命令即可完成安装。
 
 ```
 $ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.yaml
@@ -116,7 +118,7 @@ deployment "packageserver" successfully rolled out
 可以将上面的版本换成自己想要的版本，比如 `v0.22.0`。
 
 
-### Install Operator
+### 安装 Operator
 
 接下来执行如下命令来完成 Operator 的安装：
 
@@ -125,7 +127,7 @@ $ kubectl create -f https://operatorhub.io/install/stable/gitlab-runner-operator
 subscription.operators.coreos.com/my-gitlab-runner-operator created
 ```
 
-## 查看安装的 Operator
+### 查看安装的 Operator
 
 使用如下命令查看 Operator 是否安装成功
 
