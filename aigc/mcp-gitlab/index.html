@@ -1,0 +1,327 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>GitLab MCP Server tools 功能扩展实战 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 typescript 扩展 GitLab MCP Server tools"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/mcp-gitlab/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="GitLab MCP Server tools 功能扩展实战"><meta property="og:description" content="使用 typescript 扩展 GitLab MCP Server tools"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/mcp-gitlab/"><meta property="article:published_time" content="2025-05-01T10:05:42+08:00"><meta property="article:modified_time" content="2025-05-01T10:05:42+08:00"><meta itemprop=name content="GitLab MCP Server tools 功能扩展实战"><meta itemprop=description content="使用 typescript 扩展 GitLab MCP Server tools"><meta itemprop=datePublished content="2025-05-01T10:05:42+08:00"><meta itemprop=dateModified content="2025-05-01T10:05:42+08:00"><meta itemprop=wordCount content="3063"><meta itemprop=keywords content="AI,MCP,GitLab,TypeScript,"><meta name=twitter:card content="summary"><meta name=twitter:title content="GitLab MCP Server tools 功能扩展实战"><meta name=twitter:description content="使用 typescript 扩展 GitLab MCP Server tools"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>GitLab MCP Server tools 功能扩展实战</h1><div class=post-meta><span class=post-time>2025-05-01</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 3063 字</span>
+<span class=more-meta>预计阅读 7 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#原理分析>原理分析</a></li><li><a href=#扩展实践>扩展实践</a><ul><li><a href=#先看目录结构>先看目录结构</a></li><li><a href=#分析-gitlab-api>分析 GitLab API</a></li><li><a href=#开始实践>开始实践</a></li><li><a href=#测试验证>测试验证</a></li></ul></li><li><a href=#实践思考>实践思考</a></li></ul></li></ul></nav></div></div><div class=post-content><p>Anthropic 发布 MCP 的时候，在 GitHub 上发布了一些 MCP Server，比如 git、filesystem、redis 等。GitLab MCP Server 也是其中的一个，主要用来通过自然语言对 GitLab 仓库进行操作。</p><p>目前，提供的 Tools 支持的功能有 9 个：</p><ul><li><code>create_or_update_file</code>：在项目中创建或更新单个文件；</li><li><code>push_files</code>：在当提交中推送多个文件；</li><li><code>search_repositories</code>：在 GitLab 中搜索项目；</li><li><code>create_repository</code>：创建一个新的仓库；</li><li><code>get_file_contents</code>：获取文件或目录内容；</li><li><code>create_issue</code>：创建一个新的议题；</li><li><code>create_merge_request</code>：创建一个新的合并请求；</li><li><code>fork_repository</code>：派生项目；</li><li><code>create_branch</code>：创建一个新分支；</li></ul><p>通过查看上述功能的具体实现，发现扩展起来难度不大。下面分享在 Tools 中增加容器相关操作的功能。</p><h2 id=原理分析>原理分析</h2><p>正好借用好友分享的 DeepWiki 生成了一个整体的架构图：</p><p><img src=images/deepwiki.png alt=deepwiki></p><p>主要包含<strong>Server Initialization、Authentication、Data Models (Schemas)、API Functions、Request Handlers、Server Transport</strong>重要部分，后面实践部分会提及相关源代码。</p><h2 id=扩展实践>扩展实践</h2><h3 id=先看目录结构>先看目录结构</h3><p>GitLab MCP Server 是用 TypeScript 编写的，源代码位于 <code>servers/src/gitlab</code> 目录下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>.
+├── Dockerfile
+├── README.md
+├── index.ts
+├── package-lock.json
+├── package.json
+├── schemas.ts
+└── tsconfig.json
+
+0 directories, 7 files
+</code></pre></td></tr></table></div></div><p>文件说明：</p><ul><li><code>Dockerfile</code>：用来构建 GitLab MCP Server 容器镜像，最后 Server 可以以容器的方式部署运行；</li><li><code>index.ts</code>：Server 实现的主体部分，主要是通过调用 GitLab API 来实现对 GitLab 的操作；</li><li><code>package.json</code>：用于管理项目的依赖、记录 GitLab MCP Server 的元数据等；</li><li><code>schemas.ts</code>：主要用于定义数据结构；</li><li><code>tsconfig.json</code>：TypeScript 的核心配置文件，主要用于编译；</li></ul><p>后面的实践主要修改 <code>index.ts</code> 和 <code>schemas.ts</code> 两个文件。</p><h3 id=分析-gitlab-api>分析 GitLab API</h3><p>GitLab API 很多，有针对项目、分支、议题、流水线等多种功能的。本次实践来扩展容器镜像仓库相关的（Container Registry Repo）。比如获取项目中的镜像仓库。官方提供的 API 为</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>GET /projects/:id/registry/repositories
+</code></pre></td></tr></table></div></div><p>所需的输入参数为：</p><table><thead><tr><th>属性</th><th>类型</th><th>是否必须</th><th>描述</th></tr></thead><tbody><tr><td><code>id</code></td><td>integer/string</td><td>是</td><td>项目 ID 或 URL 编码的路径</td></tr><tr><td><code>tags</code></td><td>boolean</td><td>否</td><td>如果为 <code>true</code>，则仓库中的 tags 就会以数组形式列出</td></tr><tr><td><code>tags_count</code></td><td>boolean</td><td>否</td><td>如果为 <code>true</code>，则会列出仓库中的 tag 数量</td></tr></tbody></table><p>项目中的镜像仓库详情会以<strong>数组</strong>形式返回（<strong>这一点很重要，因为返回的数据格式不同，需要对数据格式进行不同的处理</strong>），示例如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[
+  {
+    &#34;id&#34;: 1,
+    &#34;name&#34;: &#34;&#34;,
+    &#34;path&#34;: &#34;group/project&#34;,
+    &#34;project_id&#34;: 9,
+    &#34;location&#34;: &#34;gitlab.example.com:5000/group/project&#34;,
+    &#34;created_at&#34;: &#34;2019-01-10T13:38:57.391Z&#34;,
+    &#34;cleanup_policy_started_at&#34;: &#34;2020-01-10T15:40:57.391Z&#34;,
+    &#34;status&#34;: null
+  },
+  {
+    &#34;id&#34;: 2,
+    &#34;name&#34;: &#34;releases&#34;,
+    &#34;path&#34;: &#34;group/project/releases&#34;,
+    &#34;project_id&#34;: 9,
+    &#34;location&#34;: &#34;gitlab.example.com:5000/group/project/releases&#34;,
+    &#34;created_at&#34;: &#34;2019-01-10T13:39:08.229Z&#34;,
+    &#34;cleanup_policy_started_at&#34;: &#34;2020-08-17T03:12:35.489Z&#34;,
+    &#34;status&#34;: &#34;delete_ongoing&#34;
+  }
+]
+</code></pre></td></tr></table></div></div><h3 id=开始实践>开始实践</h3><h4 id=定义数据结构>定义数据结构</h4><p>首先需要定义数据结构（Schema），根据 API 的返回数据格式，在 <code>schemas.ts</code> 中定义好数据结构：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 定义 API 请求所需的数据结构
+export const GetProjectContainerRegistrySchema = z.object({
+  project_id: z.string().describe(&#34;Project ID or URL-encoded path&#34;),
+  tags: z.boolean().optional(),
+  tags_count: z.boolean().optional()
+});
+
+# 定义 API 返回所需的数据结构
+export const GitLabContainerRegistrySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  path: z.string(),
+  project_id: z.number(),
+  location: z.string(),
+  created_at: z.string(),
+  cleanup_policy_started_at: z.string().nullable().optional(),
+  status: z.string().nullable().optional()
+});
+
+# 将上述 Schema 转换为数组结构，因为 API 返回的是数组结构
+export const GitLabContainerRegistryListSchema = z.array(GitLabContainerRegistrySchema);
+
+# 导出类型，以便在 `index.ts` 中使用
+export type GitLabContainerRegistry = z.infer&lt;typeof GitLabContainerRegistrySchema&gt;;
+export type GetProjectContainerRegistry = z.infer&lt;typeof GetProjectContainerRegistrySchema&gt;
+</code></pre></td></tr></table></div></div><h4 id=实现-server-部分>实现 Server 部分</h4><p>这部分主要修改三个部分：<strong>添加获取项目镜像仓库的处理函数（异步处理）、在 <code>server.setRequestHandler</code> 的 ToolList 中增加获取项目容器镜像仓库信息以及对前述函数的调用</strong>。</p><p>对于获取项目镜像仓库的处理函数，比较简单，就使用 ts 调用 GitLab 对应的 API：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>async function getProjectContainerRegistry(
+  projectId: string
+): Promise&lt;GitLabContainerRegistryList&gt; {
+  const response = await fetch(
+    `${GITLAB_API_URL}/projects/${encodeURIComponent(projectId)}/registry/repositories`,
+    {
+      headers: {
+        &#34;Authorization&#34;: `Bearer ${GITLAB_PERSONAL_ACCESS_TOKEN}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitLab API error: ${response.statusText}`);
+  }
+
+  return GitLabContainerRegistryListSchema.parse(await response.json());
+}
+</code></pre></td></tr></table></div></div><p>需要注意：</p><ul><li><strong>输入参数</strong>：使用了项目 ID；</li><li><strong>函数返回</strong>：返回了一个 <code>GitLabContainerRegistryList</code> 类型的 Promise；</li><li><strong>访问令牌</strong>：调用 GitLab API 需要个人访问令牌，可以通过在 GitLab 实例上点击<strong>头像 > 个人访问令牌</strong> 来创建；</li></ul><p>在 <code>server.setRequestHandler(ListToolsRequestSchema, async ()</code> 中添加对应的 tools，这个根据对应的格式写入即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>server.setRequestHandler(ListToolsRequestSchema, async () =&gt; {
+  return {
+    tools: [
+      {
+        name: &#34;create_or_update_file&#34;,
+        description: &#34;Create or update a single file in a GitLab project&#34;,
+        inputSchema: zodToJsonSchema(CreateOrUpdateFileSchema)
+      },
+      ......太长，删除其他......
+      {
+        name: &#34;get_project_container_registry&#34;,
+        description: &#34;Get the container registry for a GitLab project&#34;,
+        inputSchema: zodToJsonSchema(GetProjectContainerRegistrySchema)
+      }
+    ]
+  };
+});
+</code></pre></td></tr></table></div></div><p>在 <code>server.setRequestHandler(CallToolRequestSchema, async (request)</code> 中添加对于 Tools 的调用，就是 switch&mldr;case 的格式：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>case &#34;get_project_container_registry&#34;: {
+    const args = GetProjectContainerRegistrySchema.parse(request.params.arguments);
+    const registry = await getProjectContainerRegistry(args.project_id);
+    return { content: [{ type: &#34;text&#34;, text: JSON.stringify(registry, null, 2) }] };
+}
+</code></pre></td></tr></table></div></div><p>需要注意的是要在 <code>index.ts</code> 中的 import 部分导入在 <code>schemas.ts</code> 中定义好的数据结构。</p><p>通过上述两步，获取项目容器镜像仓库的 tools 添加和调用就加好了，接下来就是测试。</p><h3 id=测试验证>测试验证</h3><p>通过在 Cursor 中添加 GitLab MCP Server 来验证。所以分为 MCP 添加 + 验证两步走。</p><h4 id=构建-gitlab-mcp-server>构建 GitLab MCP Server</h4><p>GitLab MCP Server 可以通过 Docker 的方式来运行部署（这部分建议阅读过往的文章<a href=../mcp-docker/index.md>Docker 发布 MCP & Toolkit 计划</a>。所以可以先构建一个容器镜像，利用目录下的 Dockerfile 即可。执行如下命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker build -t dllhb/mcp-gitlab:0.0.1 -f src/gitlab/Dockerfile . --no-cache
+</code></pre></td></tr></table></div></div><p><strong>注意</strong>：选择自己熟悉的镜像托管仓库即可。</p><h4 id=添加-mcp-server>添加 MCP Server</h4><p>在 Cursor 上添加 MCP 的方式：<strong>点击左上角的 Cursor > Settings > Cursor Settings</strong>，选择 MCP：</p><p><img src=images/cursor-add-mcp.png alt="cursor mcp add"></p><p>然后点击 <strong>Add new global MCP server</strong>，会出现一个 <code>mcp.json</code> 文件，添加如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+  &#34;mcpServers&#34;: { 
+    &#34;gitlab&#34;: {
+      &#34;command&#34;: &#34;docker&#34;,
+      &#34;args&#34;: [
+        &#34;run&#34;,
+        &#34;--rm&#34;,
+        &#34;-i&#34;,
+        &#34;-e&#34;,
+        &#34;GITLAB_PERSONAL_ACCESS_TOKEN&#34;,
+        &#34;-e&#34;,
+        &#34;GITLAB_API_URL&#34;,
+        &#34;mcp/gitlab&#34;
+      ],
+      &#34;env&#34;: {
+        &#34;GITLAB_PERSONAL_ACCESS_TOKEN&#34;: &#34;&lt;YOUR_TOKEN&gt;&#34;,
+        &#34;GITLAB_API_URL&#34;: &#34;https://jihulab.com/api/v4&#34; 
+      }
+    }
+  }
+}
+</code></pre></td></tr></table></div></div><p>所需参数：</p><ul><li><strong>GitLab 个人访问令牌</strong>：参照前面提到的方式创建即可</li><li><strong>GitLab 实例 API URL</strong>：GitLab 实例的 URL，可以是 SaaS 也可以是私有化部署地址，本文使用极狐GitLab SaaS 测试，所以地址为 <code>https://jihulab.com/api/v4</code>。</li></ul><p>点击保存 <code>mcp.json</code> 文件，然后可以看到在 MCP 中 gitlab 的按钮变绿色，在后台可以看到启用了一个容器：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker ps
+CONTAINER ID   IMAGE                     COMMAND                  CREATED         STATUS         PORTS                       NAMES
+a119237ba3a1   dllhb/mcp-gitlab:0.0.1   &#34;node dist/index.js&#34;     6 minutes ago   Up 6 minutes                               cool_lumiere
+</code></pre></td></tr></table></div></div><p>感兴趣的可以用 <code>docker logs -f</code> 查看日志。</p><h4 id=开始验证>开始验证</h4><p>打开 Cursor 的聊天窗口（可以使用快捷键 cmd + L），然后输入提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我获取一下 16274 项目下的容器镜像仓库，谢谢!
+</code></pre></td></tr></table></div></div><p>可以看到出现了 <code>Called MCP tool</code> 的对话框，选中的 tool 为 <code>get_project_container_registry</code>，也就是前面添加的 tool，参数为项目 ID，如果同意运行，点击 <code>Run tool</code> 即可：</p><p><img src=images/run-mcp-tool.png alt="run mcp tool"></p><p>然后就可以看到对话框中获取出来了对应的信息：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[
+  {
+    &#34;id&#34;: 534,
+    &#34;name&#34;: &#34;kaniko&#34;,
+    &#34;path&#34;: &#34;jh-xiaomage-devops/go-demo/kaniko&#34;,
+    &#34;project_id&#34;: 16274,
+    &#34;location&#34;: &#34;registry.jihulab.com/jh-xiaomage-devops/go-demo/kaniko&#34;,
+    &#34;created_at&#34;: &#34;2022-02-21T18:42:43.937+08:00&#34;,
+    &#34;cleanup_policy_started_at&#34;: null,
+    &#34;status&#34;: null
+  },
+  {
+    &#34;id&#34;: 6365,
+    &#34;name&#34;: &#34;&#34;,
+    &#34;path&#34;: &#34;jh-xiaomage-devops/go-demo&#34;,
+    &#34;project_id&#34;: 16274,
+    &#34;location&#34;: &#34;registry.jihulab.com/jh-xiaomage-devops/go-demo&#34;,
+    &#34;created_at&#34;: &#34;2025-04-23T21:16:18.209+08:00&#34;,
+    &#34;cleanup_policy_started_at&#34;: null,
+    &#34;status&#34;: null
+  },
+  {
+    &#34;id&#34;: 6366,
+    &#34;name&#34;: &#34;go&#34;,
+    &#34;path&#34;: &#34;jh-xiaomage-devops/go-demo/go&#34;,
+    &#34;project_id&#34;: 16274,
+    &#34;location&#34;: &#34;registry.jihulab.com/jh-xiaomage-devops/go-demo/go&#34;,
+    &#34;created_at&#34;: &#34;2025-04-23T21:21:59.028+08:00&#34;,
+    &#34;cleanup_policy_started_at&#34;: null,
+    &#34;status&#34;: null
+  }
+]
+</code></pre></td></tr></table></div></div><p>这个响应和直接用 curl 调用 API 是一样的。然后 Cursor 还总结了一下内容：</p><p><img src=images/cursor-mcp-gitlab-cr.png alt="cursor gitlab mcp server cr details"></p><p>说明 tools 添加并调用成功。然后我有利用同样的方法添加了以下几个 tool 能力：</p><ul><li><code>get_group_container_registry</code>：获取群组内的容器镜像仓库；</li><li><code>list_container_registry_repo_tags</code>：获取容器镜像仓库中的 tags；</li><li><code>get_registry_repo_tag_details</code>：获取 tag 详情；</li><li><code>delete_registry_repo_tag</code>：删除容器镜像仓库；</li><li><code>get_single_container_registry_repo_details</code>：获取容器镜像仓库详情；</li></ul><p>经过测试都可以很好的运行。相关的代码都放在了极狐GitLab SaaS 的仓库上 <a href=https://jihulab.com/xiaomage-devops/servers/-/tree/main/src/gitlab>https://jihulab.com/xiaomage-devops/servers/-/tree/main/src/gitlab</a>。目前正准备给 upstream 提 PR。</p><h2 id=实践思考>实践思考</h2><ul><li>了解 MCP 最直观的方式可能就是动手实践了，否则容易人云亦云；</li><li>可以看出某个 MCP Server tool 的扩展比较容易，像 GitLab 这种 API 极其丰富的产品，Tool 可能多达几十个，所以这些海量 Tool 的维护是个问题；</li><li>SDK 足够多的情况下，一个 MCP Server 可能有多种实现方式，而且实现门槛也不高，如何解决冗余也是个问题；</li><li>MCP Server 本身的托管也是个问题，现在市面上已经有很多可以托管 MCP Server 的产品，如何解决<strong>可信</strong> 也是个问题；</li></ul><p>通过实践，个人感觉如果真的让 MCP 带来更好的体验、发挥更大的价值，还有很多事情要去做，还有一段路要走。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-05-01</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/ai/>AI</a>
+<a href=/tags/mcp/>MCP</a>
+<a href=/tags/gitlab/>GitLab</a>
+<a href=/tags/typescript/>TypeScript</a></div><nav class=post-nav><a class=next href=/aigc/mcp-docker/><span class="next-text nav-default">Docker 发布 MCP Catalog & ToolKit，意欲打造 MCP 单一可信源？</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
