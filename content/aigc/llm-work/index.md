@@ -1,11 +1,11 @@
 ---
-title: "GitLab MCP Server tools 功能扩展实战"
-description: "使用 typescript 扩展 GitLab MCP Server tools"
+title: "图解 LLM（大语言模型）的工作原理"
+description: "用图简单解释大语言模型（LLM）的工作原理"
 author: 马景贺（小马哥）
 image: "images/deepseek-vs-chatgpt-gemini.png"
 categories: ["AIGC"]
-tags: ["AI","MCP","GitLab","TypeScript"]
-date: 2025-05-01T10:05:42+08:00
+tags: ["AI","LLM"]
+date: 2025-05-09T10:05:42+08:00
 type: "post"
 ---
 
@@ -113,3 +113,7 @@ temperature 是通过使用 softmax 函数来调整每个词的 logits（即原�
 
 ![code demo](images/temperature-code-demo.jpeg)
 
+
+## 原帖链接
+
+https://x.com/akshay_pachaar/status/1919368985092780189
