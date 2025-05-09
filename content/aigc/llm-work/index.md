@@ -109,7 +109,7 @@ temperature 是通过使用 softmax 函数来调整每个词的 logits（即原�
 
 ![softmax logits](images/softmax-logits.jpeg)
 
-最后作者给了一个很直观的代码示例来对 temperature 对采样的影响：
+最后作者给了一个很直观的代码示例来对 temperature 对采样的影响进行说明：
 
 ![code demo](images/temperature-code-demo.jpeg)
 
