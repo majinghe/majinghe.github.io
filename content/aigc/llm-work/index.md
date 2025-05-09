@@ -77,7 +77,7 @@ Negative Log-Likelihood，负对数似然，简称 NLL。是机器学习中常�
 
 所以，这里面就有一个 **temperature（温度）** 的概念产生。
 
-## temperature（温度）
+### temperature（温度）
 
 **LLM 中，temperature（温度）是一个调整模型输出概率分布的超参数，通常用于文本生成和采样**。它影响生成文本时的**多样性**和**创造性**，以及模型在选择下一个单词时的随机性。
 
