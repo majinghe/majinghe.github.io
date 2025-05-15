@@ -48,11 +48,11 @@ AG-UI 提供了一个标准的 HTTP 客户端 `HttpAgent`，可用于连接任�
 
 AG-UI 为 agent 通信的不同方面定义了一些事件策略，主要包括：
 
-- **Lifecycle events**：`RUN_STARTED`、`RUN_FINISHED`、`RUN_ERROR`、`STEP_STARTED`、`STEP_FINISHED`
-- **Text message events**：`TEXT_MESSAGE_START`、`TEXT_MESSAGE_CONTENT`、`TEXT_MESSAGE_END`
-- **Tool call events**：`TOOL_CALL_START`、`TOOL_CALL_ARGS`、`TOOL_CALL_END`
-- **State management events**：`STATE_SNAPSHOT`、`STATE_DELTA`、`MESSAGES_SNAPSHOT`
-- **Special events**：`RAW`、`CUSTOM`
+- **Lifecycle events**：监控 Agent 的运行情况。Agent 的运行状态可能包含 `RunStarted`、`StepStarted/StepFinished`、`RunFinished`（成功）、`RunError`（失败）。
+- **Text message events**：用于处理文本流式内容的事件。这些事件遵循流模式，并以增量的方式交付内容。文本消息可能以 `TextMessageStart` 开始，然后用 `TextMessageContent` 事件来交付文本，最后以 `TextMessageEnd` 事件结束。
+- **Tool call events**：管理 Agent 对工具的执行。当 Agent 想要使用某个 tool 时，会触发一个 `ToolCallStart` 事件，随后会有 `ToolCallArgs` 事件，用于流式传输传递给工具的参数，最后以一个 `ToolCallEnd` 事件结束。
+- **State management events**：同步 Agent 和 UI 之间的状态。协议中的状态管理采用高效的“快照-增量”模式：**初始或偶尔发送完整的状态快照，而持续的变更则通过增量更新（delta）来传递**。快照能够确保前端有完整的状态上下文，而 delta 最小化了需要频繁更新的数据传输。两者的有效结合，可以使前端不进行不必要数据传输的情况下，保持对 Agent 状态的准确呈现。包括的事件有 `StateSnapshot` 和 `StateDelta`。
+- **Special events**：支持自定义功能，比如和外部系统集成。包括的事件由 `Raw` 和 `Custom`。
 
 #### 运行 Agent
 
@@ -72,7 +72,7 @@ AG-UI 通过标准化事件来提供 agent 之间的任务移交的和工具的�
 
 #### 事件
 
-AG-UI 中的所有通信都是基于类型事件。每一个事件都继承自 `BaseEvent`，其借口如下：
+AG-UI 中的所有通信都是基于类型事件。每一个事件都继承自 `BaseEvent`，其接口如下：
 
 ```
 interface BaseEvent {
