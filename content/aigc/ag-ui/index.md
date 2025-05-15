@@ -82,6 +82,8 @@ interface BaseEvent {
 }
 ```
 
+> 目前官方已经提供 TypeScipt 和 Python SDK 来对协议进行开发使用。
+
 ## MCP vs A2A vs AG-UI
 
 去年底 Anthropic 发布了 MCP（Model Context Protocol），今年 Google 又发布了 A2A（Agent to Agent），都是面向这一轮 AI 发展的协议。
