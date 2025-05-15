@@ -11,7 +11,7 @@ type: "post"
 
 ## 什么是 AG-UI
 
-AG-UI（Agent User Interaction Protocol，智能体用户交互协议） 是一个开放的、轻量的、基于事件的协议，由 CopilotKit 公司发布，它通过标准 HTTP 或可选的二进制通道，以流式方式传输一系列 JSON 事件，主要用来对 AI agent 和前端应用程序的交互进行标准化。AG-UI 是由 CopilotKit 公司发布。
+AG-UI（Agent User Interaction Protocol，智能体用户交互协议） 是一个开放的、轻量的、基于事件的协议，由 CopilotKit 公司发布，它通过标准 HTTP 或可选的二进制通道，以流式方式传输一系列 JSON 事件，主要用来对 AI agent 和前端应用程序的交互进行标准化。
 
 > CopilotKit 是一家成立于 2022 年的 AI 初创公司，聚焦在产品的 AI 助手打造上。官网的介绍是：**AI Copilots for your product. Build fast, customize effortlessly.** 官网地址为：https://www.copilotkit.ai/。
 
@@ -20,6 +20,8 @@ AG-UI（Agent User Interaction Protocol，智能体用户交互协议） 是一�
 CopilotKit 公司的人员解释，当前大多数 agent 都属于后端自动化工具，执行一些数据迁移、表单填写、内容总结一类的任务，这些 agent 在后台运行，对用户不可见。但是交互式 agent（比如 Cursor、Windsurf、Devin 等）已经实现了与用户的实时协同工作，它们也将带来海量的应用场景。这种情况下，就需要这些 agent 能够具备**实时更新**、**工具编排**、**可共享的可变状态**、**安全边界控制**以及**前端同步**等能力。为此他们构建并发布了 AG-UI 协议。
 
 ## AG-UI 介绍
+
+AG-UI 为 AI agent 和前端应用程序之间搭建了一座桥梁，让这两者之间的交互更加友好，为用户带来更好体验。示意图如下：
 
 ![ag-ui-arch](images/ag-ui-overview.png)
 
