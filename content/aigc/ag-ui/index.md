@@ -82,7 +82,7 @@ interface BaseEvent {
 }
 ```
 
-> 目前官方已经提供 TypeScipt 和 Python SDK 来对协议进行开发使用。
+> 目前官方已经提供 TypeScript 和 Python SDK 来对协议进行开发使用。
 
 ## MCP vs A2A vs AG-UI
 
