@@ -99,3 +99,5 @@ interface BaseEvent {
 三个协议构成的 Agent 协议栈如下图所示：
 
 ![ag-ui-overview](images/ag-ui-arch.webp)
+
+
