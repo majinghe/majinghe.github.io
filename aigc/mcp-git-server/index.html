@@ -1,0 +1,79 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Git MCP Server，动动嘴来操作 Git 仓库 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="Agent User Interaction Protocol 解读"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/mcp-git-server/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Git MCP Server，动动嘴来操作 Git 仓库"><meta property="og:description" content="Agent User Interaction Protocol 解读"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/mcp-git-server/"><meta property="article:published_time" content="2025-05-15T10:05:42+08:00"><meta property="article:modified_time" content="2025-05-15T10:05:42+08:00"><meta itemprop=name content="Git MCP Server，动动嘴来操作 Git 仓库"><meta itemprop=description content="Agent User Interaction Protocol 解读"><meta itemprop=datePublished content="2025-05-15T10:05:42+08:00"><meta itemprop=dateModified content="2025-05-15T10:05:42+08:00"><meta itemprop=wordCount content="1382"><meta itemprop=keywords content="AI,LLM,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Git MCP Server，动动嘴来操作 Git 仓库"><meta name=twitter:description content="Agent User Interaction Protocol 解读"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Git MCP Server，动动嘴来操作 Git 仓库</h1><div class=post-meta><span class=post-time>2025-05-15</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 1382 字</span>
+<span class=more-meta>预计阅读 3 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#实践指南>实践指南</a><ul><li><a href=#安装配置>安装配置</a></li><li><a href=#实践演示>实践演示</a></li></ul></li><li><a href=#源码解读>源码解读</a></li></ul></li></ul></nav></div></div><div class=post-content><p>在之前的文章<a href=https://majinghe.github.io/aigc/mcp-gitlab/>GitLab MCP Server tools 功能扩展实战</a>中提到了，Anthropic 在发布 MCP 的时候发布了一些开箱即用的 MCP Server，而 mcp-server-git 就是其中一个，目前支持的 Tools 有：</p><ul><li><code>git_status</code>：显示工作树的状态。输入为仓库的路径；</li><li><code>git_diff_unstaged</code>：查看工作区中尚未被提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff_staged</code>：查看已经提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff</code>：显示分支或提交间的不同。输入为仓库的路径或要对比的目标分支或提交；</li><li><code>git_commit</code>：提交变更到仓库。输入为仓库路径和提交信息；</li><li><code>git_add</code>：添加变更文件到暂存区。输入为仓库路径和变更文件；</li><li><code>git_reset</code>：恢复变更。输入为仓库路径；</li><li><code>git_log</code>：查看提交历史。输入为仓库路径，展示的最大提交数（默认是 <code>10</code>）；</li><li><code>git_create_branch</code>：创建新分支。输入为仓库路径，分支名称，新分支的基分支；</li><li><code>git_checkout</code>：切换分支。输入为仓库路径和分支名称；</li><li><code>git_show</code>：查看提交的详细内容。输入为仓库路径和 revision；</li><li><code>git_init</code>：初始化一个仓库。输入为仓库路径；</li></ul><h2 id=实践指南>实践指南</h2><p>mcp-server-git 可以通过 <code>uv</code>、<code>pip</code> 来安装使用。当然最方面的肯定是在 AI 应用中配置使用，比如 Claude、VS Code、Cursor 等。本文直接采用在 Cursor 中配置 MCP，并使用 docker 的方式。</p><h3 id=安装配置>安装配置</h3><p>首先需要配置，过程和使用<a href=../mcp-gitlab/index.md>GitLab MCP Server</a>的配置是一样的。在 Cursor 中选择<strong>Perference（偏好设置） &ndash;> Cursor Settings &ndash;> MCP</strong>：</p><p><img src=images/cursor-mcp.png alt=Cursor-git-mcp></p><p>点击右上角的<strong>Add new global MCP server</strong>，在出现的界面中输入如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+&#34;mcpServers&#34;: {
+  &#34;git&#34;: {
+    &#34;command&#34;: &#34;docker&#34;,
+    &#34;args&#34;: [&#34;run&#34;, &#34;--rm&#34;, &#34;-i&#34;, &#34;--mount&#34;, &#34;type=bind,src=/YOUR-HOST-PATH-TO-HOST-DEMO-REPO,dst=/tmp&#34;, &#34;mcp/git&#34;]
+  }
+}
+}
+</code></pre></td></tr></table></div></div><p>需要注意的是，docker 的使用用到了卷的挂载，把本地需要操作的仓库挂到到容器里面，MCP 是在容器中执行相关的 git 命令。</p><p>添加完毕，Git MCP Server 就会启动成功，显示绿色：</p><p><img src=images/mcp-git-server-add-succ.png alt="add succ"></p><p>如果要是在宿主机上看，还有对应的容器在运行：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker ps
+CONTAINER ID   IMAGE                  COMMAND                   CREATED        STATUS        PORTS                       NAMES
+fe13055d2a99   mcp/git                &#34;mcp-server-git&#34;          12 hours ago   Up 12 hours                               fervent_poitras
+</code></pre></td></tr></table></div></div><p>感兴趣可以直接用 <code>docker logs -f</code> 查看运行日志。</p><h3 id=实践演示>实践演示</h3><h4 id=git-status-演示><code>git status</code> 演示</h4><p>由于大部分 tool 功能都是基于既有的仓库进行（<code>git_init</code> 除外），所以可以先在挂载的宿主机目录下 clone 好一个仓库。然后在 Cursor 上打开 Chat 窗口。输入如下提示词来演示 <code>git status</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我获取一下 /tmp/go-demo 下面的文件变更状态，谢谢！
+</code></pre></td></tr></table></div></div><p>接着会看到 Cursor 直接调用了 <code>git_status</code> tool，并且会询问你是否运行：</p><p><img src=images/git_status_1.png alt="git status show"></p><p>点击运行之后，就会显示工作区文件变更的详情（和直接执行 <code>git status</code> 是一样的），最后 Cursor 会做一个总结，告知哪个文件进行了变更：</p><p><img src=images/git_status_2.png alt="git status summary"></p><h4 id=git-add--commit-演示><code>git add & commit</code> 演示</h4><p>接下来对变更文件进行提交，继续使用如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我把所有的变更文件进行提交，提交信息为 change port，谢谢！
+</code></pre></td></tr></table></div></div><p>可以看到 Cursor 调用了 <code>git_add</code> 和 <code>git_commit</code> 两个 tool，每一个 tool 都需要 approve 才进行，而且在 commit 时候使用的 commit message 就是提示词中给予的：</p><p><img src=images/git_add_and_commit.png alt="git add and commit"></p><h4 id=git-log-演示><code>git log</code> 演示</h4><p>接着测试一下 <code>git_log</code> 查看对应的提交历史。使用如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>我想看一下最近3 次的提交历史，谢谢！
+</code></pre></td></tr></table></div></div><p>响应如下：</p><p><img src=images/git_log.png alt="git commit history"></p><h4 id=git-show-演示><code>git show</code> 演示</h4><p>接着查看一下最近一下提交的内容详情。使用如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我查看一下最近一次提交的文件变更详情，谢谢！
+</code></pre></td></tr></table></div></div><p>可以看到 Cursor 调用了 <code>git_show</code> tool。</p><p><img src=images/git_show.png alt="git show"></p><p>Tool 的参数为</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+  &#34;repo_path&#34;: &#34;/tmp/go-demo&#34;,
+  &#34;revision&#34;: &#34;07efa13c73862001610bba9c22260e4f7477068a&#34;
+}
+</code></pre></td></tr></table></div></div><p>其中 <code>revision</code> 也就是最近一次提交的 commit ID。返回的结果就是变更详情：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Commit: 07efa13c73862001610bba9c22260e4f7477068a
+Author: root
+Date: 2025-05-18 02:58:40+00:00
+Message: change port
+
+--- main.go
++++ main.go
+@@ -12,5 +12,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
+ 
+ func main() {
+     http.HandleFunc(&#34;/opensource&#34;, handler)
+-    log.Fatal(http.ListenAndServe(&#34;:9999&#34;, nil))
++    log.Fatal(http.ListenAndServe(&#34;:9900&#34;, nil))
+ }
+</code></pre></td></tr></table></div></div><h2 id=源码解读>源码解读</h2></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-05-15</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/ai/>AI</a>
+<a href=/tags/llm/>LLM</a></div><nav class=post-nav><a class=next href=/aigc/ag-ui/><span class="next-text nav-default">MCP、A2A 之外，AI 领域又新增一协议-AG-UI</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
