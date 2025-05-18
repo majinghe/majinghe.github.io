@@ -2,10 +2,10 @@
 title: "Git MCP Server，动动嘴来操作 Git 仓库"
 description: "Agent User Interaction Protocol 解读"
 author: 马景贺（小马哥）
-image: "images/ag-ui-overview.png"
+image: "images/mcp-git-server-banner.png"
 categories: ["AIGC"]
 tags: ["AI","LLM"]
-date: 2025-05-15T10:05:42+08:00
+date: 2025-05-18T10:05:42+08:00
 type: "post"
 ---
 
