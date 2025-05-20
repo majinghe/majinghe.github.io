@@ -147,5 +147,188 @@ Message: change port
  }
 ```
 
-## 源码解读
+## 源码解读 & 扩展实践
+
+Git MCP Server 的源代码放在 https://github.com/modelcontextprotocol/servers/tree/main/src/git 目录下，使用 Python 编写。目录结构如下：
+
+```
+.
+├── Dockerfile
+├── LICENSE
+├── README.md
+├── pyproject.toml
+├── src
+│   └── mcp_server_git
+│       ├── __init__.py
+│       ├── __main__.py
+│       └── server.py
+├── tests
+│   └── test_server.py
+└── uv.lock
+```
+
+关于 MCP Server 的主要实现都在 `server.py` 文件中。借用 DeepWiki 可以清晰的看出整个实践思路：
+
+![deepwiki mcp git](images/deepwiki-mcp-git.png)
+
+可以看出，所有的操作最终都是依靠执行 `git` 命令实现，而这借助了 Python 的一个 Git 模块 GitPython。
+
+首先，定义了一个 MCP Server，源代码如下：
+
+```
+async def serve(repository: Path | None) -> None:
+    logger = logging.getLogger(__name__)
+
+    if repository is not None:
+        try:
+            git.Repo(repository)
+            logger.info(f"Using repository at {repository}")
+        except git.InvalidGitRepositoryError:
+            logger.error(f"{repository} is not a valid Git repository")
+            return
+
+    server = Server("mcp-git")
+```
+
+然后定义了 Tool list，里面就包含当前支持的 `git_status`、`git_log` 等：
+
+```
+    @server.list_tools()
+    async def list_tools() -> list[Tool]:
+        return [
+            Tool(
+                name=GitTools.STATUS,
+                description="Shows the working tree status",
+                inputSchema=GitStatus.schema(),
+            ),
+```
+
+要想扩展一个，在此部分中增加对应的 Tool 即可。比如新增一个 `git_pull` 的 Tool，新增如下内容即可：
+
+```
+Tool(
+    name=GitTools.PULL,
+    description="Pull the update from the repository",
+    inputSchema=GitPull.schema(),
+)
+```
+
+其中 GitTools 是一个类，里面用枚举的方式定义了 Tool 的名称：
+
+```
+class GitTools(str, Enum):
+    STATUS = "git_status"
+    DIFF_UNSTAGED = "git_diff_unstaged"
+    DIFF_STAGED = "git_diff_staged"
+    ......
+```
+
+新增一个 Tool，也需要添加对应的枚举信息，比如针对 `git_tool`，新增如下内容：
+
+```
+PULL = "git_pull"
+```
+
+而 Tool 最终的功能实现，是直接调用 GitPython 仓库，比如对于 `git pull`，新增如下内容：
+
+```
+def git_pull(repo: git.Repo) -> str:
+    return repo.git.pull()
+```
+
+`git.pull` 就是调用 GitPython 库，里面有原生的 pull 函数。
+
+最后就是 Tool 的调用。定义如下：
+
+```
+@server.call_tool()
+    async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+        repo_path = Path(arguments["repo_path"])
+        
+        # Handle git init separately since it doesn't require an existing repo
+        if name == GitTools.INIT:
+            result = git_init(str(repo_path))
+            return [TextContent(
+                type="text",
+                text=result
+            )]
+            
+        # For all other commands, we need an existing repo
+        repo = git.Repo(repo_path)
+
+        match name:
+            case GitTools.STATUS:
+                status = git_status(repo)
+                return [TextContent(
+                    type="text",
+                    text=f"Repository status:\n{status}"
+                )]
+
+            ......
+```
+
+新增 `git_pull` 的内容：
+
+```
+case GitTools.PULL:
+    result = git_pull(repo)
+    return [TextContent(
+        type="text",
+        text=result
+    )]
+```
+
+当调用到此 Tool 时候，就会执行 `git_pull(repo)` 函数（背后就是调用 GitPython 库，执行对应的 git 命令，然后返回结果），然后返回结果。
+
+## 测试验证
+
+将变更代码打包成一个容器镜像：
+
+```
+docker build -t dllhb/mcp-git:0.0.3
+```
+
+然后在 Cursor 中修改 `mcp.json` 文件中的镜像即可：
+
+```
+{
+"mcpServers": {
+  "git": {
+    "command": "docker",
+    "args": [
+      "run", 
+      "--rm", 
+      "-i", 
+      "--mount", "type=bind,src=/Users/jhma/Documents/mcp-test,dst=/tmp", 
+      "--mount", "type=bind,src=/Users/jhma/.ssh/id_rsa_jihugitlab,dst=/root/.ssh/id_rsa,readonly", 
+      "--mount", "type=bind,src=/Users/jhma/.ssh/known_hosts,dst=/root/.ssh/known_hosts", 
+      "dllhb/mcp-git:0.0.3"]
+  }
+}
+}
+```
+
+> 注意：由于 git pull 命令需要进行 ssh key 的验证，所以为了方便测试，将宿主机的 ssh key 挂载到了容器中。
+
+MCP Server 加载成功后，会看到多一个 `git_pull` 的 Tool：
+
+![git pull tool](images/git_pull_tool.png)
+
+在 Cursor 的聊天窗口中输入如下提示词：
+
+```
+请帮我拉取一下 /tmp/go-demo 仓库的最新变更，谢谢！
+```
+
+然后就会看到 Cursor 调用了 `git_pull` 并返回了拉取变更的结果：
+
+![git pull result](images/git_pull_result.png)
+
+从结果看验证成功。
+
+## 写在最后
+
+目前 Git MCP Server 支持的 Tool 还很有限，理论上来讲一个 `git` 命令就是一个 Tool，所以要是扩展起来，Tool 就会很多。另外，结合 GitLab MCP Server 看，也是一样的情况。因为扩展起来容易，所以扩展很快，因此可以在 Anthropic 官方的 MCP Server Repo 中有大量的 PR 等待被审核，里面绝大部分就是对于各种 MCP Server 的扩展。如何维护好这些 MCP Server，保持可用的 Tool 是足够的、能用的，需要大量的工作，这也需要 MCP Server 对应的产品方积极参与进来。
+
+或许，MCP Server 将来的发展方向就是完全为用户屏蔽这些细节了。
 
