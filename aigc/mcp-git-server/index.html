@@ -1,5 +1,5 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Git MCP Server，动动嘴来操作 Git 仓库 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="Agent User Interaction Protocol 解读"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/mcp-git-server/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Git MCP Server，动动嘴来操作 Git 仓库"><meta property="og:description" content="Agent User Interaction Protocol 解读"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/mcp-git-server/"><meta property="article:published_time" content="2025-05-18T10:05:42+08:00"><meta property="article:modified_time" content="2025-05-18T10:05:42+08:00"><meta itemprop=name content="Git MCP Server，动动嘴来操作 Git 仓库"><meta itemprop=description content="Agent User Interaction Protocol 解读"><meta itemprop=datePublished content="2025-05-18T10:05:42+08:00"><meta itemprop=dateModified content="2025-05-18T10:05:42+08:00"><meta itemprop=wordCount content="1382"><meta itemprop=keywords content="AI,LLM,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Git MCP Server，动动嘴来操作 Git 仓库"><meta name=twitter:description content="Agent User Interaction Protocol 解读"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Git MCP Server，动动嘴来操作 Git 仓库</h1><div class=post-meta><span class=post-time>2025-05-18</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 1382 字</span>
-<span class=more-meta>预计阅读 3 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#实践指南>实践指南</a><ul><li><a href=#安装配置>安装配置</a></li><li><a href=#实践演示>实践演示</a></li></ul></li><li><a href=#源码解读>源码解读</a></li></ul></li></ul></nav></div></div><div class=post-content><p>在之前的文章<a href=https://majinghe.github.io/aigc/mcp-gitlab/>GitLab MCP Server tools 功能扩展实战</a>中提到了，Anthropic 在发布 MCP 的时候发布了一些开箱即用的 MCP Server，而 mcp-server-git 就是其中一个，目前支持的 Tools 有：</p><ul><li><code>git_status</code>：显示工作树的状态。输入为仓库的路径；</li><li><code>git_diff_unstaged</code>：查看工作区中尚未被提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff_staged</code>：查看已经提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff</code>：显示分支或提交间的不同。输入为仓库的路径或要对比的目标分支或提交；</li><li><code>git_commit</code>：提交变更到仓库。输入为仓库路径和提交信息；</li><li><code>git_add</code>：添加变更文件到暂存区。输入为仓库路径和变更文件；</li><li><code>git_reset</code>：恢复变更。输入为仓库路径；</li><li><code>git_log</code>：查看提交历史。输入为仓库路径，展示的最大提交数（默认是 <code>10</code>）；</li><li><code>git_create_branch</code>：创建新分支。输入为仓库路径，分支名称，新分支的基分支；</li><li><code>git_checkout</code>：切换分支。输入为仓库路径和分支名称；</li><li><code>git_show</code>：查看提交的详细内容。输入为仓库路径和 revision；</li><li><code>git_init</code>：初始化一个仓库。输入为仓库路径；</li></ul><h2 id=实践指南>实践指南</h2><p>mcp-server-git 可以通过 <code>uv</code>、<code>pip</code> 来安装使用。当然最方面的肯定是在 AI 应用中配置使用，比如 Claude、VS Code、Cursor 等。本文直接采用在 Cursor 中配置 MCP，并使用 docker 的方式。</p><h3 id=安装配置>安装配置</h3><p>首先需要配置，过程和使用<a href=../mcp-gitlab/index.md>GitLab MCP Server</a>的配置是一样的。在 Cursor 中选择<strong>Perference（偏好设置） &ndash;> Cursor Settings &ndash;> MCP</strong>：</p><p><img src=images/cursor-mcp.png alt=Cursor-git-mcp></p><p>点击右上角的<strong>Add new global MCP server</strong>，在出现的界面中输入如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Git MCP Server，动动嘴来操作 Git 仓库 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="Agent User Interaction Protocol 解读"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/mcp-git-server/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Git MCP Server，动动嘴来操作 Git 仓库"><meta property="og:description" content="Agent User Interaction Protocol 解读"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/mcp-git-server/"><meta property="article:published_time" content="2025-05-18T10:05:42+08:00"><meta property="article:modified_time" content="2025-05-18T10:05:42+08:00"><meta itemprop=name content="Git MCP Server，动动嘴来操作 Git 仓库"><meta itemprop=description content="Agent User Interaction Protocol 解读"><meta itemprop=datePublished content="2025-05-18T10:05:42+08:00"><meta itemprop=dateModified content="2025-05-18T10:05:42+08:00"><meta itemprop=wordCount content="2505"><meta itemprop=keywords content="AI,LLM,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Git MCP Server，动动嘴来操作 Git 仓库"><meta name=twitter:description content="Agent User Interaction Protocol 解读"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Git MCP Server，动动嘴来操作 Git 仓库</h1><div class=post-meta><span class=post-time>2025-05-18</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 2505 字</span>
+<span class=more-meta>预计阅读 5 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#实践指南>实践指南</a><ul><li><a href=#安装配置>安装配置</a></li><li><a href=#实践演示>实践演示</a></li></ul></li><li><a href=#源码解读--扩展实践>源码解读 & 扩展实践</a></li><li><a href=#测试验证>测试验证</a></li><li><a href=#写在最后>写在最后</a></li></ul></li></ul></nav></div></div><div class=post-content><p>在之前的文章<a href=https://majinghe.github.io/aigc/mcp-gitlab/>GitLab MCP Server tools 功能扩展实战</a>中提到了，Anthropic 在发布 MCP 的时候发布了一些开箱即用的 MCP Server，而 mcp-server-git 就是其中一个，目前支持的 Tools 有：</p><ul><li><code>git_status</code>：显示工作树的状态。输入为仓库的路径；</li><li><code>git_diff_unstaged</code>：查看工作区中尚未被提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff_staged</code>：查看已经提交到暂存区的文件变更。输入为仓库路径；</li><li><code>git_diff</code>：显示分支或提交间的不同。输入为仓库的路径或要对比的目标分支或提交；</li><li><code>git_commit</code>：提交变更到仓库。输入为仓库路径和提交信息；</li><li><code>git_add</code>：添加变更文件到暂存区。输入为仓库路径和变更文件；</li><li><code>git_reset</code>：恢复变更。输入为仓库路径；</li><li><code>git_log</code>：查看提交历史。输入为仓库路径，展示的最大提交数（默认是 <code>10</code>）；</li><li><code>git_create_branch</code>：创建新分支。输入为仓库路径，分支名称，新分支的基分支；</li><li><code>git_checkout</code>：切换分支。输入为仓库路径和分支名称；</li><li><code>git_show</code>：查看提交的详细内容。输入为仓库路径和 revision；</li><li><code>git_init</code>：初始化一个仓库。输入为仓库路径；</li></ul><h2 id=实践指南>实践指南</h2><p>mcp-server-git 可以通过 <code>uv</code>、<code>pip</code> 来安装使用。当然最方面的肯定是在 AI 应用中配置使用，比如 Claude、VS Code、Cursor 等。本文直接采用在 Cursor 中配置 MCP，并使用 docker 的方式。</p><h3 id=安装配置>安装配置</h3><p>首先需要配置，过程和使用<a href=../mcp-gitlab/index.md>GitLab MCP Server</a>的配置是一样的。在 Cursor 中选择<strong>Perference（偏好设置） &ndash;> Cursor Settings &ndash;> MCP</strong>：</p><p><img src=images/cursor-mcp.png alt=Cursor-git-mcp></p><p>点击右上角的<strong>Add new global MCP server</strong>，在出现的界面中输入如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -65,7 +65,193 @@ Message: change port
 -    log.Fatal(http.ListenAndServe(&#34;:9999&#34;, nil))
 +    log.Fatal(http.ListenAndServe(&#34;:9900&#34;, nil))
  }
-</code></pre></td></tr></table></div></div><h2 id=源码解读>源码解读</h2></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+</code></pre></td></tr></table></div></div><h2 id=源码解读--扩展实践>源码解读 & 扩展实践</h2><p>Git MCP Server 的源代码放在 <a href=https://github.com/modelcontextprotocol/servers/tree/main/src/git>https://github.com/modelcontextprotocol/servers/tree/main/src/git</a> 目录下，使用 Python 编写。目录结构如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>.
+├── Dockerfile
+├── LICENSE
+├── README.md
+├── pyproject.toml
+├── src
+│   └── mcp_server_git
+│       ├── __init__.py
+│       ├── __main__.py
+│       └── server.py
+├── tests
+│   └── test_server.py
+└── uv.lock
+</code></pre></td></tr></table></div></div><p>关于 MCP Server 的主要实现都在 <code>server.py</code> 文件中。借用 DeepWiki 可以清晰的看出整个实践思路：</p><p><img src=images/deepwiki-mcp-git.png alt="deepwiki mcp git"></p><p>可以看出，所有的操作最终都是依靠执行 <code>git</code> 命令实现，而这借助了 Python 的一个 Git 模块 GitPython。</p><p>首先，定义了一个 MCP Server，源代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>async def serve(repository: Path | None) -&gt; None:
+    logger = logging.getLogger(__name__)
+
+    if repository is not None:
+        try:
+            git.Repo(repository)
+            logger.info(f&#34;Using repository at {repository}&#34;)
+        except git.InvalidGitRepositoryError:
+            logger.error(f&#34;{repository} is not a valid Git repository&#34;)
+            return
+
+    server = Server(&#34;mcp-git&#34;)
+</code></pre></td></tr></table></div></div><p>然后定义了 Tool list，里面就包含当前支持的 <code>git_status</code>、<code>git_log</code> 等：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    @server.list_tools()
+    async def list_tools() -&gt; list[Tool]:
+        return [
+            Tool(
+                name=GitTools.STATUS,
+                description=&#34;Shows the working tree status&#34;,
+                inputSchema=GitStatus.schema(),
+            ),
+</code></pre></td></tr></table></div></div><p>要想扩展一个，在此部分中增加对应的 Tool 即可。比如新增一个 <code>git_pull</code> 的 Tool，新增如下内容即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Tool(
+    name=GitTools.PULL,
+    description=&#34;Pull the update from the repository&#34;,
+    inputSchema=GitPull.schema(),
+)
+</code></pre></td></tr></table></div></div><p>其中 GitTools 是一个类，里面用枚举的方式定义了 Tool 的名称：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>class GitTools(str, Enum):
+    STATUS = &#34;git_status&#34;
+    DIFF_UNSTAGED = &#34;git_diff_unstaged&#34;
+    DIFF_STAGED = &#34;git_diff_staged&#34;
+    ......
+</code></pre></td></tr></table></div></div><p>新增一个 Tool，也需要添加对应的枚举信息，比如针对 <code>git_tool</code>，新增如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>PULL = &#34;git_pull&#34;
+</code></pre></td></tr></table></div></div><p>而 Tool 最终的功能实现，是直接调用 GitPython 仓库，比如对于 <code>git pull</code>，新增如下内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>def git_pull(repo: git.Repo) -&gt; str:
+    return repo.git.pull()
+</code></pre></td></tr></table></div></div><p><code>git.pull</code> 就是调用 GitPython 库，里面有原生的 pull 函数。</p><p>最后就是 Tool 的调用。定义如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>@server.call_tool()
+    async def call_tool(name: str, arguments: dict) -&gt; list[TextContent]:
+        repo_path = Path(arguments[&#34;repo_path&#34;])
+        
+        # Handle git init separately since it doesn&#39;t require an existing repo
+        if name == GitTools.INIT:
+            result = git_init(str(repo_path))
+            return [TextContent(
+                type=&#34;text&#34;,
+                text=result
+            )]
+            
+        # For all other commands, we need an existing repo
+        repo = git.Repo(repo_path)
+
+        match name:
+            case GitTools.STATUS:
+                status = git_status(repo)
+                return [TextContent(
+                    type=&#34;text&#34;,
+                    text=f&#34;Repository status:\n{status}&#34;
+                )]
+
+            ......
+</code></pre></td></tr></table></div></div><p>新增 <code>git_pull</code> 的内容：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>case GitTools.PULL:
+    result = git_pull(repo)
+    return [TextContent(
+        type=&#34;text&#34;,
+        text=result
+    )]
+</code></pre></td></tr></table></div></div><p>当调用到此 Tool 时候，就会执行 <code>git_pull(repo)</code> 函数（背后就是调用 GitPython 库，执行对应的 git 命令，然后返回结果），然后返回结果。</p><h2 id=测试验证>测试验证</h2><p>将变更代码打包成一个容器镜像：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker build -t dllhb/mcp-git:0.0.3
+</code></pre></td></tr></table></div></div><p>然后在 Cursor 中修改 <code>mcp.json</code> 文件中的镜像即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+&#34;mcpServers&#34;: {
+  &#34;git&#34;: {
+    &#34;command&#34;: &#34;docker&#34;,
+    &#34;args&#34;: [
+      &#34;run&#34;, 
+      &#34;--rm&#34;, 
+      &#34;-i&#34;, 
+      &#34;--mount&#34;, &#34;type=bind,src=/Users/jhma/Documents/mcp-test,dst=/tmp&#34;, 
+      &#34;--mount&#34;, &#34;type=bind,src=/Users/jhma/.ssh/id_rsa_jihugitlab,dst=/root/.ssh/id_rsa,readonly&#34;, 
+      &#34;--mount&#34;, &#34;type=bind,src=/Users/jhma/.ssh/known_hosts,dst=/root/.ssh/known_hosts&#34;, 
+      &#34;dllhb/mcp-git:0.0.3&#34;]
+  }
+}
+}
+</code></pre></td></tr></table></div></div><blockquote><p>注意：由于 git pull 命令需要进行 ssh key 的验证，所以为了方便测试，将宿主机的 ssh key 挂载到了容器中。</p></blockquote><p>MCP Server 加载成功后，会看到多一个 <code>git_pull</code> 的 Tool：</p><p><img src=images/git_pull_tool.png alt="git pull tool"></p><p>在 Cursor 的聊天窗口中输入如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我拉取一下 /tmp/go-demo 仓库的最新变更，谢谢！
+</code></pre></td></tr></table></div></div><p>然后就会看到 Cursor 调用了 <code>git_pull</code> 并返回了拉取变更的结果：</p><p><img src=images/git_pull_result.png alt="git pull result"></p><p>从结果看验证成功。</p><h2 id=写在最后>写在最后</h2><p>目前 Git MCP Server 支持的 Tool 还很有限，理论上来讲一个 <code>git</code> 命令就是一个 Tool，所以要是扩展起来，Tool 就会很多。另外，结合 GitLab MCP Server 看，也是一样的情况。因为扩展起来容易，所以扩展很快，因此可以在 Anthropic 官方的 MCP Server Repo 中有大量的 PR 等待被审核，里面绝大部分就是对于各种 MCP Server 的扩展。如何维护好这些 MCP Server，保持可用的 Tool 是足够的、能用的，需要大量的工作，这也需要 MCP Server 对应的产品方积极参与进来。</p><p>或许，MCP Server 将来的发展方向就是完全为用户屏蔽这些细节了。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
 <span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
 <span class=item-content>2025-05-18</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/ai/>AI</a>
 <a href=/tags/llm/>LLM</a></div><nav class=post-nav><a class=next href=/aigc/ag-ui/><span class="next-text nav-default">MCP、A2A 之外，AI 领域又新增一协议-AG-UI</span>
