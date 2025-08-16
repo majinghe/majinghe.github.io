@@ -1,0 +1,214 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>新一代对象存储 RustFS 的 MCP 扩展实践 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="RustFS 是用 Rust 编写的新一代对象存储,完全兼容 S3."><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/rustfs-mcp/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="新一代对象存储 RustFS 的 MCP 扩展实践"><meta property="og:description" content="RustFS 是用 Rust 编写的新一代对象存储,完全兼容 S3."><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/rustfs-mcp/"><meta property="article:published_time" content="2025-08-16T13:05:42+08:00"><meta property="article:modified_time" content="2025-08-16T13:05:42+08:00"><meta itemprop=name content="新一代对象存储 RustFS 的 MCP 扩展实践"><meta itemprop=description content="RustFS 是用 Rust 编写的新一代对象存储,完全兼容 S3."><meta itemprop=datePublished content="2025-08-16T13:05:42+08:00"><meta itemprop=dateModified content="2025-08-16T13:05:42+08:00"><meta itemprop=wordCount content="1612"><meta itemprop=keywords content="AI,MCP,Rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="新一代对象存储 RustFS 的 MCP 扩展实践"><meta name=twitter:description content="RustFS 是用 Rust 编写的新一代对象存储,完全兼容 S3."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>新一代对象存储 RustFS 的 MCP 扩展实践</h1><div class=post-meta><span class=post-time>2025-08-16</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 1612 字</span>
+<span class=more-meta>预计阅读 4 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#关于-rustfs>关于 RustFS</a><ul><li><a href=#rustfs-的安装>RustFS 的安装</a></li><li><a href=#rustfs-mcp>RustFS MCP</a></li><li><a href=#rustfs-mcp-扩展实践>RustFS MCP 扩展实践</a></li><li><a href=#rustfs-mcp-扩展测试>RustFS MCP 扩展测试</a></li></ul></li></ul></nav></div></div><div class=post-content><h1 id=关于-rustfs>关于 RustFS</h1><p>RustFS 是用 Rust 编写的新一代高性能对象存储，完全兼容 S3，是 MinIO 的国产平替。RustFS 是开源的，采用 Apache 2.0 许可证。目前在 <a href=https://github.com/rustfs/rustfs>GitHub 上开源</a>不到两个月，已经收获 7.5k Star。根据官方发布的性能测评，在 2 Core、4GB RAM、15Gbp 以及 4x40GB 驱动的情况下，RustFS 的性能是大幅度优于 MinIO 的，目前 RustFS 还处于 1.0.0-alpha 阶段，预计未来会对在大规模使用场景下的性能进行提升。</p><h2 id=rustfs-的安装>RustFS 的安装</h2><p>RustFS 支持二进制或 Docker 安装，可以在 Linux、macOS、Windows 上运行。本文采用 Docker 的方式安装，根据<a href="https://rustfs.com/zh/download/?platform=docker">RustFS 官方安装指南</a>，执行如下命令即可快速部署一个 RustFS 实例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker pull rustfs/rustfs:latest
+docker run -d \
+  --name rustfs \
+  -p 9000:9000 \
+  -v /data:/data \
+  rustfs/rustfs:latest
+</code></pre></td></tr></table></div></div><p>安装完成后，可通过 <code>localhost:9000</code> 访问 RustFS，如下图所示：</p><p><img src=images/rustfs-login.png alt="rustfs login page"></p><p>使用默认用户名 <code>admin</code> 和密码 <code>admin123</code> 登录即可。</p><h2 id=rustfs-mcp>RustFS MCP</h2><p>RustFS MCP 是官方提供的 MCP Server，以实现通过自然语言对 RustFS 进行操作，比如 Bucket 的创建删除、Object 的上传下载等。RustFS MCP 是用 Rust 编写的，目前支持的 Tools 有：</p><ul><li><code>list_buckets</code>：列出所有 Bucket；</li><li><code>list_objects</code>：列出 S3 存储桶中的对象，支持可选的前缀过滤；</li><li><code>upload_file</code>：将本地文件上传到 RustFS 存储桶；</li><li><code>get_object</code>：获取对象内容或下载到本地；</li></ul><p>RustFS MCP 的代码存放在 <a href=https://github.com/rustfs/rustfs/tree/main/crates/mcp>MCP 目录下</a>，目录结构为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>rustfs-mcp/
+├── src/
+│   ├── main.rs          # Entry point, CLI parsing, and server initialization
+│   ├── server.rs        # MCP server implementation and tool handlers
+│   ├── s3_client.rs     # S3 client wrapper with async operations
+│   ├── config.rs        # Configuration management and CLI options
+│   └── lib.rs           # Library exports and public API
+└── Cargo.toml           # Dependencies, metadata, and binary configuration
+</code></pre></td></tr></table></div></div><p>下面对 RustFS MCP 的 tool 进行扩展，增加 Bucket 创建和删除。</p><h2 id=rustfs-mcp-扩展实践>RustFS MCP 扩展实践</h2><p>主要修改的文件是 <code>server.rs</code> 和 <code>s3_client.rs</code>。其中 <code>server.rs</code> 是 MCP Server 的入口，<code>s3_client.rs</code> 通过对 S3 Rust SDK 封装实现了一个 S3 客户端。</p><p>以下是 RustFS MCP Server 在 <code>server.rs</code> 中的主要实现部分：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>#[tool_router(router = tool_router)]
+impl RustfsMcpServer {
+    pub async fn new(config: Config) -&gt; Result&lt;Self&gt; {
+        info!(&#34;Creating RustFS MCP Server&#34;);
+
+        let s3_client = S3Client::new(&amp;config).await?;
+
+        Ok(Self {
+            s3_client,
+            _config: config,
+            tool_router: Self::tool_router(),
+        })
+    }
+</code></pre></td></tr></table></div></div><p>其中 RustfsMcpServer 是一个结构体：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>pub struct RustfsMcpServer {
+    s3_client: S3Client,
+    _config: Config,
+    tool_router: ToolRouter&lt;Self&gt;,
+}
+</code></pre></td></tr></table></div></div><p>因此，要扩展 tool，就需要在 RustfsMcpServer 中添加一个新的方法。比如对于 Bucket 的创建，可以添加如下方法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    #[tool(description = &#34;Create a new S3 bucket with the specified name&#34;)]
+    pub async fn create_bucket(&amp;self, Parameters(req): Parameters&lt;CreateBucketReqeust&gt;) -&gt; String {
+        info!(&#34;Executing create_bucket tool for bucket: {}&#34;, req.bucket_name);
+
+        match self.s3_client.create_bucket(&amp;req.bucket_name).await {
+            Ok(_) =&gt; {
+                format!(&#34;Successfully created bucket: {}&#34;, req.bucket_name)
+            }
+            Err(e) =&gt; {
+                format!(&#34;Failed to create bucket &#39;{}&#39;: {:?}&#34;, req.bucket_name, e)
+            }
+        }
+    }
+</code></pre></td></tr></table></div></div><p>输入参数就是 Bucket 名称。整个过程会去调用 s3_client 中的 create_bucket 方法。前面说了，s3_client 是对 S3 Rust SDK 的封装，因此，需要在 s3_client.rs 中添加如下方法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    pub async fn create_bucket(&amp;self, bucket_name: &amp;str) -&gt; Result&lt;BucketInfo&gt; {
+        info!(&#34;Creating S3 bucket: {}&#34;, bucket_name);
+
+        self.client
+            .create_bucket()
+            .bucket(bucket_name)
+            .send()
+            .await
+            .context(format!(&#34;Failed to create S3 bucket: {bucket_name}&#34;))?;
+
+        info!(&#34;Bucket &#39;{}&#39; created successfully&#34;, bucket_name);
+        Ok(BucketInfo {
+            name: bucket_name.to_string(),
+            creation_date: None, // Creation date not returned by create_bucket
+        })
+    }
+</code></pre></td></tr></table></div></div><p>其中的 <code>self.client</code> 就是 S3 Rust SDK 的客户端，因此，只需要调用 S3 Rust SDK 的 <code>create_bucket</code> 方法即可。</p><p>可以用相同的扩展方法对 Bucket 的删除进行扩展，增加一个 <code>bucket_delete</code> 的 tool。</p><h2 id=rustfs-mcp-扩展测试>RustFS MCP 扩展测试</h2><p>RustFS MCP 支持通过<a href=https://github.com/rustfs/rustfs/tree/main/crates/mcp>二进制或 Docker 进行部署</a>。本文使用 Docker 方式。根据官方提供的 Dockerfile 和构建命令，构建一个 RustFS MCP Docker 镜像：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># clone rustfs repo
+git clone https://github.com/rustfs/rustfs.git
+cd rustfs
+
+# build rustfs-mcp docker image
+docker build -f crates/mcp/Dockerfile -t rustfs/rustfs-mcp .
+</code></pre></td></tr></table></div></div><p>上面是在 rustfs 代码仓库根目录下进行，如果在 <code>crates/mcp</code> 目录下进行，构建命令变为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker build -f Dockerfile -t rustfs/rustfs-mcp ../../
+</code></pre></td></tr></table></div></div><p>在支持 MCP 的 AI 应用中（比如 Claude、Cursor、Trae 等），找到 MCP 配置，添加如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{
+  &#34;mcpServers&#34;: {
+    &#34;rustfs-mcp&#34;: {
+      &#34;command&#34;: &#34;docker&#34;,
+      &#34;args&#34;: [
+        &#34;run&#34;,
+        &#34;--rm&#34;,
+        &#34;-i&#34;,
+        &#34;-e&#34;,
+        &#34;AWS_ACCESS_KEY_ID&#34;,
+        &#34;-e&#34;,
+        &#34;AWS_SECRET_ACCESS_KEY&#34;,
+        &#34;-e&#34;,
+        &#34;AWS_REGION&#34;,
+        &#34;-e&#34;,
+        &#34;AWS_ENDPOINT_URL&#34;,
+        &#34;-e&#34;,
+        &#34;RUST_LOG&#34;,
+        &#34;rustfs/rustfs-mcp&#34;
+      ],
+      &#34;env&#34;: {
+        &#34;AWS_ACCESS_KEY_ID&#34;: &#34;YOUR_RUSTFS_ACCESS_KEY_ID&#34;,
+        &#34;AWS_SECRET_ACCESS_KEY&#34;: &#34;YOUR_RUSTFS_SECRET_ACCESS_KEY&#34;,
+        &#34;AWS_REGION&#34;: &#34;cn-east-1&#34;,
+        &#34;RUST_LOG&#34;: &#34;info&#34;,
+        &#34;AWS_ENDPOINT_URL&#34;: &#34;YOUR_RUSTFS_ENDPOINT_URL&#34;
+      }
+    }
+  }
+}
+</code></pre></td></tr></table></div></div><p>过程中会用到 RustFS 访问密钥。登录 RustFS 控制台，在左侧导航栏选择 <strong>访问密钥</strong>，然后选择右上角的 <strong>添加访问密钥</strong>，输入响应的信息即可创建成功访问密钥。</p><p><img src=images/access_key_creation.png alt="access key creation"></p><p>保存 MCP 配置文件后，可以在 AI 应用上看到 RustFS MCP Server 已经处于运行状态，而且还可以看到可用的 tool：</p><p><img src=images/mcp_configured_succ.png alt="mcp configured succ"></p><p>在对话框中，输入如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>请帮我创建一个名为 rustfs-mcp-server 的存储桶，谢谢！
+</code></pre></td></tr></table></div></div><p>返回如下：</p><p><img src=images/create_bucket_tool_creation.png alt="create bucket tool reponse"></p><p>在 RustFS 控制台上，可以看到 <code>rustfs-mcp-server</code> 存储桶被创建成功：</p><p><img src=images/rustfs_mcp_server_on_console.png alt="rustfs mcp server on console"></p><p>如果要删除这个存储桶，可以输入如下提示词：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>rustfs_mcp_server_on_console.png
+</code></pre></td></tr></table></div></div><p><img src=images/delete_bucket_tool_response.png alt="delete bucket tool response"></p><p>从测试看，扩展的两个 tool：<code>create_bucket</code> 和 <code>delete_bucket</code> 符合预期。</p><p>当然，RustFS MCP 的扩展远不止这些，对于想学习 Rust、研究 MCP 的开发者来讲，RustFS 是一个不错的开源项目。感兴趣的可以自行研究。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-08-16</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/ai/>AI</a>
+<a href=/tags/mcp/>MCP</a>
+<a href=/tags/rust/>Rust</a></div><nav class=post-nav><a class=next href=/aigc/mcp-archive/><span class="next-text nav-default">Anthropic 归档了众多当初发布的 MCP Server，究竟为何？</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
