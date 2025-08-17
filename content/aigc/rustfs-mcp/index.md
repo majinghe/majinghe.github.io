@@ -197,7 +197,7 @@ docker build -f Dockerfile -t rustfs/rustfs-mcp ../../
 在对话框中，输入如下提示词：
 
 ```
-请帮我创建一个名为 rustfs-mcp-server 的存储桶，谢谢！
+请帮我创建一个名为 rustfs-mcp-server 的存储桶！
 ```
 
 返回如下：
@@ -211,8 +211,10 @@ docker build -f Dockerfile -t rustfs/rustfs-mcp ../../
 如果要删除这个存储桶，可以输入如下提示词：
 
 ```
-rustfs_mcp_server_on_console.png
+请帮我删除 rustfs-mcp-server 存储桶！
 ```
+
+返回如下：
 
 ![delete bucket tool response](images/delete_bucket_tool_response.png)
 
