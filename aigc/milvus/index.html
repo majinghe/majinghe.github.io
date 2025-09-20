@@ -1,0 +1,425 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/milvus/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta property="og:description" content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/milvus/"><meta property="article:published_time" content="2025-09-20T09:05:42+08:00"><meta property="article:modified_time" content="2025-09-20T09:05:42+08:00"><meta itemprop=name content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta itemprop=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta itemprop=datePublished content="2025-09-20T09:05:42+08:00"><meta itemprop=dateModified content="2025-09-20T09:05:42+08:00"><meta itemprop=wordCount content="2577"><meta itemprop=keywords content="AIGC,milvus,RustFS,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta name=twitter:description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot</h1><div class=post-meta><span class=post-time>2025-09-20</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 2577 字</span>
+<span class=more-meta>预计阅读 6 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#milvus--rustfs-的安装>Milvus & RustFS 的安装</a><ul><li><a href=#关于-milvus>关于 Milvus</a></li><li><a href=#关于-rustfs>关于 RustFS</a></li><li><a href=#使用-docker-compose-安装>使用 docker compose 安装</a></li></ul></li><li><a href=#rustfs-文档的向量化>RustFS 文档的向量化</a></li><li><a href=#将向量化数据存储到-milvus>将向量化数据存储到 milvus</a></li><li><a href=#milvus--llm构建-rag>milvus + llm，构建 RAG</a><ul><li><a href=#2-准备配置文件>2. 准备配置文件</a></li><li><a href=#3-拉取官方-rustfs-镜像>3. 拉取官方 RustFS 镜像</a></li><li><a href=#4-运行-rustfs-容器>4. 运行 RustFS 容器</a></li><li><a href=#5-验证安装>5. 验证安装</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>偶然点开了 milvus 的文档，想看一下 milvus 的安装使用，看到 milvus 支持 docker compose 安装以及将对象存储作为后端存储来实现存算分离，正好之前扩展 RustFS MCP 的时候，了解到 RustFS 是新一代的分布式对象存储系统，结合 milvus 的文档，想利用 milvus + rustfs + llm 来打造一个轻量级的 RAG，在 RAG Ready 之后，又想着是否可以借助这个 RAG 做一个简单的 Chatbot，于是在 Vibe Coding 的加持下，很快就完成了。整个过程的感受是：</p><ul><li>milvus 的中文文档写的挺好；</li><li>RustFS 作为对象存储真好用；</li><li>一时 Vibe Coding 一时爽，一直 Vibe Coding 一直爽，结果就需求无法收敛；</li><li>通过故障排查来学习是高效的；</li></ul><p>下面是是整个过程，enjoy。</p><p>整个过程涉及的步骤：</p><ul><li>milvus & rustfs 的安装；</li><li>RustFS 中文文档的向量化；</li><li>向量化数据在 milvus 中的存储；</li><li>milvus + llm 实现 RAG；</li><li>fastapi + next.js 实现 chatbot；</li></ul><h2 id=milvus--rustfs-的安装>Milvus & RustFS 的安装</h2><h3 id=关于-milvus>关于 Milvus</h3><p>Milvus 是一款开源的向量数据库项目，由 Zilliz 开发，目前该项目已经捐赠给了 LF AI & Data 基金会。向量数据库是 AIGC 发展的重要基础设施。一次该项目在 GitHub 上已经有超 37.5k star。</p><h3 id=关于-rustfs>关于 RustFS</h3><p>RustFS 是一款开源的对象存储系统，用 Rust 语言编写，完全兼容 S3，可以使用二进制、Docker、Helm chart 进行安装。本地实践正好将其作为 milvus 向量数据库的存储后端。</p><h3 id=使用-docker-compose-安装>使用 docker compose 安装</h3><p>Milvus 官方提供的<a href=https://github.com/milvus-io/milvus/blob/master/docker-compose.yml><code>docker-compose.yml</code></a>文件中包含了对于 milvus、minio 的安装。但是本次使用 RustFS 来替代 minio，因此需要做一些变更。关于 minio 的信息主要包括：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>minio:
+  address: localhost:9000
+  port: 9000
+  accessKeyID: rustfsadmin
+  secretAccessKey: rustfsadmin
+  useSSL: false
+  bucketName: &#34;rustfs-bucket&#34;
+</code></pre></td></tr></table></div></div><p>这部分内容包含在 <a href=https://github.com/milvus-io/milvus>milvus repo</a>的 <code>configs/milvus.yaml</code> 文件中，所以要将上述内容替换，有两种方式：</p><ul><li>将 <code>configs/milvus.yaml</code> 文件存放到本地，将内容替换为 RustFS 的，然后在 docker compose 中通过 volume 挂载即可；</li><li>修改 milvus 容器的 command，在服务启动前先用 <code>yq</code> 命令对 <code>configs/milvus.yaml</code>（在容器中地址变为 <code>/milvus/configs/milvus.yaml</code>）中的 minio 信息进行修改，然后启动 milvus 服务；</li></ul><p>本地实践选择了第一种方式，所以会在 <code>docker-compose.yml</code> 文件中 milvus 服务的 volume 中增加了一个：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus/milvus.yaml:/milvus/configs/milvus.yaml:ro
+</code></pre></td></tr></table></div></div><p>整体的 <code>docker-compose.yml</code> 文件包含的服务有：</p><h4 id=etcd>etcd</h4><p>milvus 依赖于 etcd：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>  etcd:
+    container_name: milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: [&#34;CMD&#34;, &#34;etcdctl&#34;, &#34;endpoint&#34;, &#34;health&#34;]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+</code></pre></td></tr></table></div></div><h4 id=attu>attu</h4><p>可以可视化查看 milvus 情况的一个服务，也是有 zilliz 研发且开源的（注意 2.6 以后是闭源的）</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>  attu:
+    container_name: milvus-attu
+    image: zilliz/attu:v2.6
+    environment:
+      - MILVUS_URL=milvus-standalone:19530
+    ports:
+      - &#34;8000:3000&#34;
+    restart: unless-stopped
+</code></pre></td></tr></table></div></div><h4 id=rustfs-服务>rustfs 服务</h4><p>作为对象存储后端，存储 milvus 中的数据：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>  rustfs:
+    container_name: milvus-rustfs
+    image: rustfs/rustfs:1.0.0-alpha.58
+    environment:
+      - RUSTFS_VOLUMES=/data/rustfs0,/data/rustfs1,/data/rustfs2,/data/rustfs3
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_EXTERNAL_ADDRESS=:9000  # Same as internal since no port mapping
+      - RUSTFS_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
+    ports:
+      - &#34;9000:9000&#34; # S3 API port
+      - &#34;9001:9001&#34; # Console port
+    volumes:
+      - rustfs_data_0:/data/rustfs0
+      - rustfs_data_1:/data/rustfs1
+      - rustfs_data_2:/data/rustfs2
+      - rustfs_data_3:/data/rustfs3
+      - logs_data:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          &#34;CMD&#34;,
+          &#34;sh&#34;, &#34;-c&#34;,
+          &#34;curl -f http://localhost:9000/health &amp;&amp; curl -f http://localhost:9001/health&#34;
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+</code></pre></td></tr></table></div></div><h4 id=milvus>milvus</h4><p>milvus 向量数据库，采用 standalone 模式：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>  standalone:
+    container_name: milvus-standalone
+    image: milvusdb/milvus:v2.6.0
+    command: [&#34;milvus&#34;, &#34;run&#34;, &#34;standalone&#34;]
+    security_opt:
+    - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: rustfs:9000
+      MQ_TYPE: woodpecker
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus/milvus.yaml:/milvus/configs/milvus.yaml:ro
+    healthcheck:
+      test: [&#34;CMD&#34;, &#34;curl&#34;, &#34;-f&#34;, &#34;http://localhost:9091/healthz&#34;]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - &#34;19530:19530&#34;
+      - &#34;9091:9091&#34;
+    depends_on:
+      - &#34;etcd&#34;
+      - &#34;rustfs&#34;
+</code></pre></td></tr></table></div></div><p>配置好相关参数后，直接执行命令即可启动所有服务：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker compose -f docker-compose.yml up -d
+</code></pre></td></tr></table></div></div><p>启动的容器有：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker ps
+CONTAINER ID   IMAGE                                             COMMAND                  CREATED          STATUS                      PORTS                                                                                      NAMES
+4404b5cc6f7e   milvusdb/milvus:v2.6.0                            &#34;/tini -- milvus run…&#34;   53 minutes ago   Up 53 minutes (healthy)     0.0.0.0:9091-&gt;9091/tcp, :::9091-&gt;9091/tcp, 0.0.0.0:19530-&gt;19530/tcp, :::19530-&gt;19530/tcp   milvus-standalone
+40ddc8ed08bb   zilliz/attu:v2.6                                  &#34;docker-entrypoint.s…&#34;   53 minutes ago   Up 53 minutes               0.0.0.0:8000-&gt;3000/tcp, :::8000-&gt;3000/tcp                                                  milvus-attu
+3d2c8d80a8ce   quay.io/coreos/etcd:v3.5.18                       &#34;etcd -advertise-cli…&#34;   53 minutes ago   Up 53 minutes (healthy)     2379-2380/tcp                                                                              milvus-etcd
+d760f6690ea7   rustfs/rustfs:1.0.0-alpha.58                      &#34;/entrypoint.sh rust…&#34;   53 minutes ago   Up 53 minutes (unhealthy)   0.0.0.0:9000-9001-&gt;9000-9001/tcp, :::9000-9001-&gt;9000-9001/tcp                              milvus-rustfs
+</code></pre></td></tr></table></div></div><p>其中，milvus 在 <code>ip:19530</code> 可用；rustfs 在 <code>ip:9000</code> 可用；attu 在 <code>ip:8000</code> 可用。</p><h2 id=rustfs-文档的向量化>RustFS 文档的向量化</h2><p>本次实践以 <a href=https://docs.rustfs.com/zh>RustFS 中文文档</a>包含的 80 个 Markdown 文件为基础数据，将其进行分片并向量化。通过 Python 来实现。代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 3. 读取 Markdown 文件
+def load_markdown_files(folder):
+    files = glob.glob(os.path.join(folder, &#34;**&#34;, &#34;*.md&#34;), recursive=True)
+    docs = []
+    for f in files:
+        with open(f, &#34;r&#34;, encoding=&#34;utf-8&#34;) as fp:
+            docs.append(fp.read())
+    return docs
+
+# 4. 切分文档（简单按段落）
+def split_into_chunks(text, max_len=500):
+    chunks, current = [], []
+    for line in text.split(&#34;\n&#34;):
+        if len(&#34; &#34;.join(current)) + len(line) &lt; max_len:
+            current.append(line)
+        else:
+            chunks.append(&#34; &#34;.join(current))
+            current = [line]
+    if current:
+        chunks.append(&#34; &#34;.join(current))
+    return chunks
+</code></pre></td></tr></table></div></div><p>整体思路就是遍历 RustFS 中文文档下面的 Mardown 文件，然后将其内容输出为 docs 列表，然后再根据换行符（<code>\n</code>）将内容切片处理（这个地方的方式还可以更加精细化，感兴趣地可以自行调整），最终输出切片后的字符串列表（chunks）。</p><p>接下来通过使用 <code>text-embedding-3-large</code> 模型将上述的字符串列表进行向量化：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>def embed_texts(texts):
+    response = client.embeddings.create(
+        model=&#34;text-embedding-3-large&#34;,
+        input=texts
+    )
+    return [d.embedding for d in response.data]
+</code></pre></td></tr></table></div></div><p>接下来就可以将这些数据存储到 milvus 中了。</p><h2 id=将向量化数据存储到-milvus>将向量化数据存储到 milvus</h2><p>milvus 中使用 collection 和 schema 来对数据进行存储管理：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 链接 milvus
+connections.connect(&#34;default&#34;, host=&#34;ip&#34;, port=&#34;19530&#34;)
+
+# 定义 Collection Schema
+fields = [
+    FieldSchema(name=&#34;id&#34;, dtype=DataType.INT64, is_primary=True, auto_id=True),
+    FieldSchema(name=&#34;content&#34;, dtype=DataType.VARCHAR, max_length=2000),
+    FieldSchema(name=&#34;embedding&#34;, dtype=DataType.FLOAT_VECTOR, dim=3072),
+]
+schema = CollectionSchema(fields, description=&#34;Markdown docs collection&#34;)
+
+# 创建 collection
+if utility.has_collection(&#34;docs_collection&#34;):
+    utility.drop_collection(&#34;docs_collection&#34;)
+
+collection = Collection(name=&#34;docs_collection&#34;, schema=schema)
+
+# 插入数据
+collection.insert([all_chunks, embeddings])
+collection.flush()
+</code></pre></td></tr></table></div></div><p>可以在 attu 服务上查看，在 collections 中有一个 <code>docs_collection</code>：</p><p><img src=./images/attu-collections-check.png alt="attu collections"></p><h2 id=milvus--llm构建-rag>milvus + llm，构建 RAG</h2><p>Milvus 已经存储了 RustFS 中文文档的向量化数据，再配合 llm（本次实践选择 GPT），就可以构造一个简单的 RAG。整体思路是：<strong>将查询向量化，然后在 milvus 中检索相似的文档（或片段），然后拼接好 prompt，最后点用 llm，获得最终答案</strong>。代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    query_embedding = embed_texts(query)
+
+    # 2. 从 Milvus 检索相似文档
+    search_params = {&#34;metric_type&#34;: &#34;COSINE&#34;, &#34;params&#34;: {&#34;nprobe&#34;: 10}}
+    results = collection.search(
+        data=[query_embedding],
+        anns_field=&#34;embedding&#34;,
+        param=search_params,
+        limit=3,
+        output_fields=[&#34;content&#34;]
+    )
+
+    docs = [hit.entity.get(&#34;text&#34;) for hit in results[0]]
+
+    # 3. 拼接 RAG Prompt
+    prompt = f&#34;你是一个 RustFS 专家，请基于以下文档回答：\n\n{docs}\n\n用户问题：{query}&#34;
+
+    # 4. 调用 LLM
+    response = client.chat.completions.create(
+        model=&#34;gpt-5-chat&#34;, 
+        messages=[{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: prompt}],
+        # max_tokens=16384,
+        # temperature=1.0,
+        # top_p=1.0,
+    )
+
+    answer = response.choices[0].message.content
+
+    return {&#34;answer&#34;: answer, &#34;sources&#34;: docs}
+</code></pre></td></tr></table></div></div><p>测试查询语句为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>如何在 Docker 中安装 RustFS
+</code></pre></td></tr></table></div></div><p>返回结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>根据你提供的文档，在 **Docker** 中安装 **RustFS** 的步骤如下：  
+
+---
+
+## **Docker 安装 RustFS 步骤**
+
+### 1. 确认环境要求
+- **宿主机已安装 Docker**（版本 ≥ 20.10）
+- 预留一个本地路径作为数据挂载目录，例如：
+  ```bash
+  /mnt/rustfs/data
+</code></pre></td></tr></table></div></div><ul><li>确保宿主机 <strong>9000 端口</strong>（或自定义端口）开放</li></ul><hr><h3 id=2-准备配置文件>2. 准备配置文件</h3><p>在宿主机创建配置文件 <code>/etc/rustfs/config.toml</code>，示例内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash><span class=nv>RUSTFS_ACCESS_KEY</span><span class=o>=</span>rustfsadmin
+<span class=nv>RUSTFS_SECRET_KEY</span><span class=o>=</span>rustfsadmin
+<span class=nv>RUSTFS_VOLUMES</span><span class=o>=</span><span class=s2>&#34;/data/rustfs{0...3}&#34;</span>
+<span class=nv>RUSTFS_ADDRESS</span><span class=o>=</span><span class=s2>&#34;:9000&#34;</span>
+<span class=c1>#RUSTFS_SERVER_DOMAINS=&#34;play.rustfs.com:7000&#34;</span>
+<span class=nv>RUSTFS_CONSOLE_ENABLE</span><span class=o>=</span><span class=nb>true</span>
+<span class=nv>RUSTFS_OBS_ENDPOINT</span><span class=o>=</span><span class=s2>&#34;&#34;</span>
+<span class=nv>RUSTFS_TLS_PATH</span><span class=o>=</span><span class=s2>&#34;/opt/tls&#34;</span>
+</code></pre></td></tr></table></div></div><blockquote><p>注：路径 <code>/data/rustfs{0...3}</code> 会在容器中映射为实际的宿主机存储路径</p></blockquote><hr><h3 id=3-拉取官方-rustfs-镜像>3. 拉取官方 RustFS 镜像</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>docker pull rustfs/rustfs
+</code></pre></td></tr></table></div></div><hr><h3 id=4-运行-rustfs-容器>4. 运行 RustFS 容器</h3><p>执行以下命令启动：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>docker run -d <span class=se>\
+</span><span class=se></span>  --name rustfs <span class=se>\
+</span><span class=se></span>  -p 9000:9000 <span class=se>\
+</span><span class=se></span>  -v /mnt/rustfs/data:/data <span class=se>\
+</span><span class=se></span>  -v /etc/rustfs/config.toml:/etc/rustfs/config.toml <span class=se>\
+</span><span class=se></span>  rustfs/rustfs
+</code></pre></td></tr></table></div></div><p>说明：</p><ul><li><code>-v /mnt/rustfs/data:/data</code> 绑定数据存储目录</li><li><code>-v /etc/rustfs/config.toml:/etc/rustfs/config.toml</code> 挂载配置文件</li><li><code>-p 9000:9000</code> 暴露 S3 兼容 API 端口</li></ul><hr><h3 id=5-验证安装>5. 验证安装</h3><p>启动完成后，在浏览器或 S3 客户端访问：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>http://&lt;宿主机IP&gt;:9000
+</code></pre></td></tr></table></div></div><p>使用配置文件中的 <strong>Access Key</strong> 和 <strong>Secret Key</strong>（如 <code>rustfsadmin</code> / <code>rustfsadmin</code>）进行登录即可。</p><hr><p>✅ <strong>总结</strong><br>在 Docker 中安装 RustFS 的核心步骤是：</p><ol><li>准备宿主机数据目录和配置文件</li><li>拉取官方 <code>rustfs/rustfs</code> 镜像</li><li>使用 <code>docker run</code> 启动容器并映射端口和数据卷</li><li>使用配置文件中的账号密码访问 S3 服务</li></ol><hr><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+## 更进一步：DIY 一个 chatbot
+
+既然 RAG 已经可用了，那就干脆做一个 chatbot web 吧，避免</code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-09-20</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/aigc/>AIGC</a>
+<a href=/tags/milvus/>milvus</a>
+<a href=/tags/rustfs/>RustFS</a></div><nav class=post-nav><a class=next href=/aigc/rustfs-mcp/><span class="next-text nav-default">新一代对象存储 RustFS 的 MCP 扩展实践</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
