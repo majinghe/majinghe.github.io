@@ -312,82 +312,165 @@ Milvus 已经存储了 RustFS 中文文档的向量化数据，再配合 llm（�
 
 返回结果：
 
-```
-根据你提供的文档，在 **Docker** 中安装 **RustFS** 的步骤如下：  
+> 根据你提供的文档，在 **Docker** 中安装 **RustFS** 的步骤如下：  
 
----
-
-## **Docker 安装 RustFS 步骤**
-
-### 1. 确认环境要求
-- **宿主机已安装 Docker**（版本 ≥ 20.10）
-- 预留一个本地路径作为数据挂载目录，例如：
-  ```bash
-  /mnt/rustfs/data
-  ```
-- 确保宿主机 **9000 端口**（或自定义端口）开放
-
----
-
-### 2. 准备配置文件
-在宿主机创建配置文件 `/etc/rustfs/config.toml`，示例内容如下：
-```bash
-RUSTFS_ACCESS_KEY=rustfsadmin
-RUSTFS_SECRET_KEY=rustfsadmin
-RUSTFS_VOLUMES="/data/rustfs{0...3}"
-RUSTFS_ADDRESS=":9000"
-#RUSTFS_SERVER_DOMAINS="play.rustfs.com:7000"
-RUSTFS_CONSOLE_ENABLE=true
-RUSTFS_OBS_ENDPOINT=""
-RUSTFS_TLS_PATH="/opt/tls"
-```
-> 注：路径 `/data/rustfs{0...3}` 会在容器中映射为实际的宿主机存储路径
-
----
-
-### 3. 拉取官方 RustFS 镜像
-```bash
-docker pull rustfs/rustfs
-```
-
----
-
-### 4. 运行 RustFS 容器
-执行以下命令启动：
-```bash
-docker run -d \
-  --name rustfs \
-  -p 9000:9000 \
-  -v /mnt/rustfs/data:/data \
-  -v /etc/rustfs/config.toml:/etc/rustfs/config.toml \
-  rustfs/rustfs
-```
-说明：
-- `-v /mnt/rustfs/data:/data` 绑定数据存储目录
-- `-v /etc/rustfs/config.toml:/etc/rustfs/config.toml` 挂载配置文件
-- `-p 9000:9000` 暴露 S3 兼容 API 端口
-
----
-
-### 5. 验证安装
-启动完成后，在浏览器或 S3 客户端访问：
-```
-http://<宿主机IP>:9000
-```
-使用配置文件中的 **Access Key** 和 **Secret Key**（如 `rustfsadmin` / `rustfsadmin`）进行登录即可。
-
----
-
-✅ **总结**  
-在 Docker 中安装 RustFS 的核心步骤是：
-1. 准备宿主机数据目录和配置文件
-2. 拉取官方 `rustfs/rustfs` 镜像
-3. 使用 `docker run` 启动容器并映射端口和数据卷
-4. 使用配置文件中的账号密码访问 S3 服务
-
----
-```
+> ---
+>
+> ## **Docker 安装 RustFS 步骤**
+>
+> ### 1. 确认环境要求
+> - **宿主机已安装 Docker**（版本 ≥ 20.10）
+> - 预留一个本地路径作为数据挂载目录，例如：
+>   ```bash
+>   /mnt/rustfs/data
+>   ```
+> - 确保宿主机 **9000 端口**（或自定义端口）开放
+>
+> ---
+>
+> ### 2. 准备配置文件
+> 在宿主机创建配置文件 `/etc/rustfs/config.toml`，示例内容如下：
+> ```bash
+> RUSTFS_ACCESS_KEY=rustfsadmin
+> RUSTFS_SECRET_KEY=rustfsadmin
+> RUSTFS_VOLUMES="/data/rustfs{0...3}"
+> RUSTFS_ADDRESS=":9000"
+> #RUSTFS_SERVER_DOMAINS="play.rustfs.com:7000"
+> RUSTFS_CONSOLE_ENABLE=true
+> RUSTFS_OBS_ENDPOINT=""
+> RUSTFS_TLS_PATH="/opt/tls"
+> ```
+> > 注：路径 `/data/rustfs{0...3}` 会在容器中映射为实际的宿主机存储路径
+>
+> ---
+>
+> ### 3. 拉取官方 RustFS 镜像
+> ```bash
+> docker pull rustfs/rustfs
+> ```
+>
+> ---
+>
+> ### 4. 运行 RustFS 容器
+> 执行以下命令启动：
+> ```bash
+> docker run -d \
+>   --name rustfs \
+>   -p 9000:9000 \
+>   -v /mnt/rustfs/data:/data \
+>   -v /etc/rustfs/config.toml:/etc/rustfs/config.toml \
+>   rustfs/rustfs
+> ```
+> 说明：
+> - `-v /mnt/rustfs/data:/data` 绑定数据存储目录
+> - `-v /etc/rustfs/config.toml:/etc/rustfs/config.toml` 挂载配置文件
+> - `-p 9000:9000` 暴露 S3 兼容 API 端口
+>
+> ---
+>
+> ### 5. 验证安装
+> 启动完成后，在浏览器或 S3 客户端访问：
+> ```
+> http://<宿主机IP>:9000
+> ```
+> 使用配置文件中的 **Access Key** 和 **Secret Key**（如 `rustfsadmin` / `rustfsadmin`）进行登录即可。
+>
+> ---
+>
+> ✅ **总结**  
+> 在 Docker 中安装 RustFS 的核心步骤是：
+> 1. 准备宿主机数据目录和配置文件
+> 2. 拉取官方 `rustfs/rustfs` 镜像
+> 3. 使用 `docker run` 启动容器并映射端口和数据卷
+> 4. 使用配置文件中的账号密码访问 S3 服务
+>
+> ---
 
 ## 更进一步：DIY 一个 chatbot
 
-既然 RAG 已经可用了，那就干脆做一个 chatbot web 吧，避免
+既然 RAG 已经可用了，那就干脆做一个 chatbot web 吧，不用每次都执行 python 脚本，在 web 页面上问问题多好。
+
+问了一下 GPT，给出的方案是 fastapi（因为 RAG 构建代码是 python 写的）+ Next.js（用来做一个简单的用 web 页面）。
+
+FastAPI 的作用是将 RAG “封装起来”，暴露出一个 API，然后给前端使用：
+
+```
+app = FastAPI()
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    query = req.query
+
+......
+```
+
+运行应用：
+
+```
+uvicorn main:app --reload --host 0.0.0.0 --port 9999
+INFO:     Will watch for changes in these directories: ['/home/xiaomage/milvus/chatbot/.venv']
+INFO:     Uvicorn running on http://0.0.0.0:9999 (Press CTRL+C to quit)
+INFO:     Started reloader process [2071374] using WatchFiles
+INFO:     Started server process [2071376]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+Next.js 的核心代码如下：
+
+```
+    try {
+      const res = await fetch('http://localhost:9999/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: input }),
+      });
+
+      const data = await res.json();
+      const botMessage: Message = { role: 'bot', content: data.answer || 'No response' };
+      setMessages(prev => [...prev, userMessage, botMessage]);
+    } catch (error) {
+      console.error(error);
+      const botMessage: Message = { role: 'bot', content: 'Error connecting to server.' };
+      setMessages(prev => [...prev, botMessage]);
+    } finally {
+      setLoading(false);
+    }
+```
+
+运行应用：
+
+```
+pnpm run dev -H 0.0.0.0 -p 3000
+
+> rag-chatbot@0.1.0 dev /home/xiaomage/milvus/chatbot-web/rag-chatbot
+> next dev --turbopack -H 0.0.0.0 -p 3000
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 1288ms
+```
+
+在浏览器中访问 `http:ip:3000/chat`，出现如下界面：
+
+
+![chat web](./images/chat-web.png)
+
+在对话框中输入：
+
+```
+如何在 Docker 中安装 RustFS?
+```
+
+返回结果：
+
+![chatbot result](./images/chatbot-result.png)
+
+简单的 Chatbot 就此完成。
+
+## 写在最后
+
+整个过程中也遇到了一些问题，通过解决问题的过程对于 milvus、向量化、RAG 有了更进一步的了解。当然，由于 Vibe Coding 确实很爽，导致需求一直不收敛，从最初始的 milvus 安装到 RAG，再到 Chatbot 的打造，后面还想继续优化整个过程，将这些代码都打包到 Dockerfile 里面，用 docker compose 运行。
