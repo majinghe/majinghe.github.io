@@ -1,5 +1,5 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/milvus/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta property="og:description" content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/milvus/"><meta property="article:published_time" content="2025-09-20T09:05:42+08:00"><meta property="article:modified_time" content="2025-09-20T09:05:42+08:00"><meta itemprop=name content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta itemprop=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta itemprop=datePublished content="2025-09-20T09:05:42+08:00"><meta itemprop=dateModified content="2025-09-20T09:05:42+08:00"><meta itemprop=wordCount content="2577"><meta itemprop=keywords content="AIGC,milvus,RustFS,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta name=twitter:description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot</h1><div class=post-meta><span class=post-time>2025-09-20</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 2577 字</span>
-<span class=more-meta>预计阅读 6 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#milvus--rustfs-的安装>Milvus & RustFS 的安装</a><ul><li><a href=#关于-milvus>关于 Milvus</a></li><li><a href=#关于-rustfs>关于 RustFS</a></li><li><a href=#使用-docker-compose-安装>使用 docker compose 安装</a></li></ul></li><li><a href=#rustfs-文档的向量化>RustFS 文档的向量化</a></li><li><a href=#将向量化数据存储到-milvus>将向量化数据存储到 milvus</a></li><li><a href=#milvus--llm构建-rag>milvus + llm，构建 RAG</a><ul><li><a href=#2-准备配置文件>2. 准备配置文件</a></li><li><a href=#3-拉取官方-rustfs-镜像>3. 拉取官方 RustFS 镜像</a></li><li><a href=#4-运行-rustfs-容器>4. 运行 RustFS 容器</a></li><li><a href=#5-验证安装>5. 验证安装</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>偶然点开了 milvus 的文档，想看一下 milvus 的安装使用，看到 milvus 支持 docker compose 安装以及将对象存储作为后端存储来实现存算分离，正好之前扩展 RustFS MCP 的时候，了解到 RustFS 是新一代的分布式对象存储系统，结合 milvus 的文档，想利用 milvus + rustfs + llm 来打造一个轻量级的 RAG，在 RAG Ready 之后，又想着是否可以借助这个 RAG 做一个简单的 Chatbot，于是在 Vibe Coding 的加持下，很快就完成了。整个过程的感受是：</p><ul><li>milvus 的中文文档写的挺好；</li><li>RustFS 作为对象存储真好用；</li><li>一时 Vibe Coding 一时爽，一直 Vibe Coding 一直爽，结果就需求无法收敛；</li><li>通过故障排查来学习是高效的；</li></ul><p>下面是是整个过程，enjoy。</p><p>整个过程涉及的步骤：</p><ul><li>milvus & rustfs 的安装；</li><li>RustFS 中文文档的向量化；</li><li>向量化数据在 milvus 中的存储；</li><li>milvus + llm 实现 RAG；</li><li>fastapi + next.js 实现 chatbot；</li></ul><h2 id=milvus--rustfs-的安装>Milvus & RustFS 的安装</h2><h3 id=关于-milvus>关于 Milvus</h3><p>Milvus 是一款开源的向量数据库项目，由 Zilliz 开发，目前该项目已经捐赠给了 LF AI & Data 基金会。向量数据库是 AIGC 发展的重要基础设施。一次该项目在 GitHub 上已经有超 37.5k star。</p><h3 id=关于-rustfs>关于 RustFS</h3><p>RustFS 是一款开源的对象存储系统，用 Rust 语言编写，完全兼容 S3，可以使用二进制、Docker、Helm chart 进行安装。本地实践正好将其作为 milvus 向量数据库的存储后端。</p><h3 id=使用-docker-compose-安装>使用 docker compose 安装</h3><p>Milvus 官方提供的<a href=https://github.com/milvus-io/milvus/blob/master/docker-compose.yml><code>docker-compose.yml</code></a>文件中包含了对于 milvus、minio 的安装。但是本次使用 RustFS 来替代 minio，因此需要做一些变更。关于 minio 的信息主要包括：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/aigc/milvus/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta property="og:description" content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/aigc/milvus/"><meta property="article:published_time" content="2025-09-20T09:05:42+08:00"><meta property="article:modified_time" content="2025-09-20T09:05:42+08:00"><meta itemprop=name content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta itemprop=description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><meta itemprop=datePublished content="2025-09-20T09:05:42+08:00"><meta itemprop=dateModified content="2025-09-20T09:05:42+08:00"><meta itemprop=wordCount content="3072"><meta itemprop=keywords content="AIGC,milvus,RustFS,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot"><meta name=twitter:description content="使用 milvus + rustfs + llm 构建一个 RAG，再借助 Vibe Coding 构建一个 Chatbot"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot</h1><div class=post-meta><span class=post-time>2025-09-20</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 3072 字</span>
+<span class=more-meta>预计阅读 7 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#milvus--rustfs-的安装>Milvus & RustFS 的安装</a><ul><li><a href=#关于-milvus>关于 Milvus</a></li><li><a href=#关于-rustfs>关于 RustFS</a></li><li><a href=#使用-docker-compose-安装>使用 docker compose 安装</a></li></ul></li><li><a href=#rustfs-文档的向量化>RustFS 文档的向量化</a></li><li><a href=#将向量化数据存储到-milvus>将向量化数据存储到 milvus</a></li><li><a href=#milvus--llm构建-rag>milvus + llm，构建 RAG</a></li><li><a href=#docker-安装-rustfs-步骤><strong>Docker 安装 RustFS 步骤</strong></a><ul><li><a href=#1-确认环境要求>1. 确认环境要求</a></li><li><a href=#2-准备配置文件>2. 准备配置文件</a></li><li><a href=#3-拉取官方-rustfs-镜像>3. 拉取官方 RustFS 镜像</a></li><li><a href=#4-运行-rustfs-容器>4. 运行 RustFS 容器</a></li><li><a href=#5-验证安装>5. 验证安装</a></li></ul></li><li><a href=#更进一步diy-一个-chatbot>更进一步：DIY 一个 chatbot</a></li><li><a href=#写在最后>写在最后</a></li></ul></li></ul></nav></div></div><div class=post-content><p>偶然点开了 milvus 的文档，想看一下 milvus 的安装使用，看到 milvus 支持 docker compose 安装以及将对象存储作为后端存储来实现存算分离，正好之前扩展 RustFS MCP 的时候，了解到 RustFS 是新一代的分布式对象存储系统，结合 milvus 的文档，想利用 milvus + rustfs + llm 来打造一个轻量级的 RAG，在 RAG Ready 之后，又想着是否可以借助这个 RAG 做一个简单的 Chatbot，于是在 Vibe Coding 的加持下，很快就完成了。整个过程的感受是：</p><ul><li>milvus 的中文文档写的挺好；</li><li>RustFS 作为对象存储真好用；</li><li>一时 Vibe Coding 一时爽，一直 Vibe Coding 一直爽，结果就需求无法收敛；</li><li>通过故障排查来学习是高效的；</li></ul><p>下面是是整个过程，enjoy。</p><p>整个过程涉及的步骤：</p><ul><li>milvus & rustfs 的安装；</li><li>RustFS 中文文档的向量化；</li><li>向量化数据在 milvus 中的存储；</li><li>milvus + llm 实现 RAG；</li><li>fastapi + next.js 实现 chatbot；</li></ul><h2 id=milvus--rustfs-的安装>Milvus & RustFS 的安装</h2><h3 id=关于-milvus>关于 Milvus</h3><p>Milvus 是一款开源的向量数据库项目，由 Zilliz 开发，目前该项目已经捐赠给了 LF AI & Data 基金会。向量数据库是 AIGC 发展的重要基础设施。一次该项目在 GitHub 上已经有超 37.5k star。</p><h3 id=关于-rustfs>关于 RustFS</h3><p>RustFS 是一款开源的对象存储系统，用 Rust 语言编写，完全兼容 S3，可以使用二进制、Docker、Helm chart 进行安装。本地实践正好将其作为 milvus 向量数据库的存储后端。</p><h3 id=使用-docker-compose-安装>使用 docker compose 安装</h3><p>Milvus 官方提供的<a href=https://github.com/milvus-io/milvus/blob/master/docker-compose.yml><code>docker-compose.yml</code></a>文件中包含了对于 milvus、minio 的安装。但是本次使用 RustFS 来替代 minio，因此需要做一些变更。关于 minio 的信息主要包括：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -349,29 +349,9 @@ collection.flush()
     return {&#34;answer&#34;: answer, &#34;sources&#34;: docs}
 </code></pre></td></tr></table></div></div><p>测试查询语句为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>如何在 Docker 中安装 RustFS
-</code></pre></td></tr></table></div></div><p>返回结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>根据你提供的文档，在 **Docker** 中安装 **RustFS** 的步骤如下：  
-
----
-
-## **Docker 安装 RustFS 步骤**
-
-### 1. 确认环境要求
-- **宿主机已安装 Docker**（版本 ≥ 20.10）
-- 预留一个本地路径作为数据挂载目录，例如：
-  ```bash
-  /mnt/rustfs/data
-</code></pre></td></tr></table></div></div><ul><li>确保宿主机 <strong>9000 端口</strong>（或自定义端口）开放</li></ul><hr><h3 id=2-准备配置文件>2. 准备配置文件</h3><p>在宿主机创建配置文件 <code>/etc/rustfs/config.toml</code>，示例内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</code></pre></td></tr></table></div></div><p>返回结果：</p><blockquote><p>根据你提供的文档，在 <strong>Docker</strong> 中安装 <strong>RustFS</strong> 的步骤如下：</p></blockquote><blockquote><hr><h2 id=docker-安装-rustfs-步骤><strong>Docker 安装 RustFS 步骤</strong></h2><h3 id=1-确认环境要求>1. 确认环境要求</h3><ul><li><strong>宿主机已安装 Docker</strong>（版本 ≥ 20.10）</li><li>预留一个本地路径作为数据挂载目录，例如：<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>/mnt/rustfs/data
+</code></pre></td></tr></table></div></div></li><li>确保宿主机 <strong>9000 端口</strong>（或自定义端口）开放</li></ul><hr><h3 id=2-准备配置文件>2. 准备配置文件</h3><p>在宿主机创建配置文件 <code>/etc/rustfs/config.toml</code>，示例内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -403,14 +383,93 @@ collection.flush()
 </span><span class=se></span>  rustfs/rustfs
 </code></pre></td></tr></table></div></div><p>说明：</p><ul><li><code>-v /mnt/rustfs/data:/data</code> 绑定数据存储目录</li><li><code>-v /etc/rustfs/config.toml:/etc/rustfs/config.toml</code> 挂载配置文件</li><li><code>-p 9000:9000</code> 暴露 S3 兼容 API 端口</li></ul><hr><h3 id=5-验证安装>5. 验证安装</h3><p>启动完成后，在浏览器或 S3 客户端访问：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>http://&lt;宿主机IP&gt;:9000
-</code></pre></td></tr></table></div></div><p>使用配置文件中的 <strong>Access Key</strong> 和 <strong>Secret Key</strong>（如 <code>rustfsadmin</code> / <code>rustfsadmin</code>）进行登录即可。</p><hr><p>✅ <strong>总结</strong><br>在 Docker 中安装 RustFS 的核心步骤是：</p><ol><li>准备宿主机数据目录和配置文件</li><li>拉取官方 <code>rustfs/rustfs</code> 镜像</li><li>使用 <code>docker run</code> 启动容器并映射端口和数据卷</li><li>使用配置文件中的账号密码访问 S3 服务</li></ol><hr><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</code></pre></td></tr></table></div></div><p>使用配置文件中的 <strong>Access Key</strong> 和 <strong>Secret Key</strong>（如 <code>rustfsadmin</code> / <code>rustfsadmin</code>）进行登录即可。</p><hr><p>✅ <strong>总结</strong><br>在 Docker 中安装 RustFS 的核心步骤是：</p><ol><li>准备宿主机数据目录和配置文件</li><li>拉取官方 <code>rustfs/rustfs</code> 镜像</li><li>使用 <code>docker run</code> 启动容器并映射端口和数据卷</li><li>使用配置文件中的账号密码访问 S3 服务</li></ol><hr></blockquote><h2 id=更进一步diy-一个-chatbot>更进一步：DIY 一个 chatbot</h2><p>既然 RAG 已经可用了，那就干脆做一个 chatbot web 吧，不用每次都执行 python 脚本，在 web 页面上问问题多好。</p><p>问了一下 GPT，给出的方案是 fastapi（因为 RAG 构建代码是 python 写的）+ Next.js（用来做一个简单的用 web 页面）。</p><p>FastAPI 的作用是将 RAG “封装起来”，暴露出一个 API，然后给前端使用：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
-## 更进一步：DIY 一个 chatbot
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>app = FastAPI()
 
-既然 RAG 已经可用了，那就干脆做一个 chatbot web 吧，避免</code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+@app.post(&#34;/chat&#34;)
+def chat(req: ChatRequest):
+    query = req.query
+
+......
+</code></pre></td></tr></table></div></div><p>运行应用：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>uvicorn main:app --reload --host 0.0.0.0 --port 9999
+INFO:     Will watch for changes in these directories: [&#39;/home/xiaomage/milvus/chatbot/.venv&#39;]
+INFO:     Uvicorn running on http://0.0.0.0:9999 (Press CTRL+C to quit)
+INFO:     Started reloader process [2071374] using WatchFiles
+INFO:     Started server process [2071376]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+</code></pre></td></tr></table></div></div><p>Next.js 的核心代码如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>    try {
+      const res = await fetch(&#39;http://localhost:9999/chat&#39;, {
+        method: &#39;POST&#39;,
+        headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+        body: JSON.stringify({ query: input }),
+      });
+
+      const data = await res.json();
+      const botMessage: Message = { role: &#39;bot&#39;, content: data.answer || &#39;No response&#39; };
+      setMessages(prev =&gt; [...prev, userMessage, botMessage]);
+    } catch (error) {
+      console.error(error);
+      const botMessage: Message = { role: &#39;bot&#39;, content: &#39;Error connecting to server.&#39; };
+      setMessages(prev =&gt; [...prev, botMessage]);
+    } finally {
+      setLoading(false);
+    }
+</code></pre></td></tr></table></div></div><p>运行应用：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>pnpm run dev -H 0.0.0.0 -p 3000
+
+&gt; rag-chatbot@0.1.0 dev /home/xiaomage/milvus/chatbot-web/rag-chatbot
+&gt; next dev --turbopack -H 0.0.0.0 -p 3000
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 1288ms
+</code></pre></td></tr></table></div></div><p>在浏览器中访问 <code>http:ip:3000/chat</code>，出现如下界面：</p><p><img src=./images/chat-web.png alt="chat web"></p><p>在对话框中输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>如何在 Docker 中安装 RustFS?
+</code></pre></td></tr></table></div></div><p>返回结果：</p><p><img src=./images/chatbot-result.png alt="chatbot result"></p><p>简单的 Chatbot 就此完成。</p><h2 id=写在最后>写在最后</h2><p>整个过程中也遇到了一些问题，通过解决问题的过程对于 milvus、向量化、RAG 有了更进一步的了解。当然，由于 Vibe Coding 确实很爽，导致需求一直不收敛，从最初始的 milvus 安装到 RAG，再到 Chatbot 的打造，后面还想继续优化整个过程，将这些代码都打包到 Dockerfile 里面，用 docker compose 运行。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
 <span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
 <span class=item-content>2025-09-20</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/aigc/>AIGC</a>
 <a href=/tags/milvus/>milvus</a>
