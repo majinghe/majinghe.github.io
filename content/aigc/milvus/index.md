@@ -268,6 +268,11 @@ collection.flush()
 
 ![attu collections](./images/attu-collections-check.png)
 
+
+可以在 RustFS 上看到存储的数据：
+
+![rustfs data](./images/rustfs-data.png)
+
 ## milvus + llm，构建 RAG
 
 Milvus 已经存储了 RustFS 中文文档的向量化数据，再配合 llm（本次实践选择 GPT），就可以构造一个简单的 RAG。整体思路是：**将查询向量化，然后在 milvus 中检索相似的文档（或片段），然后拼接好 prompt，最后点用 llm，获得最终答案**。代码如下：
