@@ -1,0 +1,555 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>ansible + docker compose, RustFS MNMD 架构的一键部署之道 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="使用 ansible 和 docker compose 部署 RustFS 多机多盘架构。"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/cloud-native/ansible-rustfs/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="ansible + docker compose, RustFS MNMD 架构的一键部署之道"><meta property="og:description" content="使用 ansible 和 docker compose 部署 RustFS 多机多盘架构。"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/cloud-native/ansible-rustfs/"><meta property="article:published_time" content="2025-10-19T13:05:42+08:00"><meta property="article:modified_time" content="2025-10-19T13:05:42+08:00"><meta itemprop=name content="ansible + docker compose, RustFS MNMD 架构的一键部署之道"><meta itemprop=description content="使用 ansible 和 docker compose 部署 RustFS 多机多盘架构。"><meta itemprop=datePublished content="2025-10-19T13:05:42+08:00"><meta itemprop=dateModified content="2025-10-19T13:05:42+08:00"><meta itemprop=wordCount content="2360"><meta itemprop=keywords content="AI,ansible,Rust,docker,"><meta name=twitter:card content="summary"><meta name=twitter:title content="ansible + docker compose, RustFS MNMD 架构的一键部署之道"><meta name=twitter:description content="使用 ansible 和 docker compose 部署 RustFS 多机多盘架构。"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>ansible + docker compose, RustFS MNMD 架构的一键部署之道</h1><div class=post-meta><span class=post-time>2025-10-19</span><div class=post-category><a href=/categories/aigc/>AIGC</a></div><span class=more-meta>约 2360 字</span>
+<span class=more-meta>预计阅读 5 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#前提>前提</a></li><li><a href=#安装流程>安装流程</a><ul><li><a href=#配置-ansible>配置 ansible</a></li><li><a href=#编写-ansible-playbook>编写 ansible playbook</a></li><li><a href=#开始安装>开始安装</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>关于 RustFS 在过往的博客中已经有过介绍：</p><ul><li><a href=../../aigc/milvus/index.md>Milvus + RustFS + Vibe Coding，快速 DIY 一个 Chatbot</a></li><li><a href=../../aigc/dify/index.md>Dify + RustFS + Milvus，构建文档多语种翻译 AI Workflow</a></li><li><a href=../../aigc/rustfs-mcp/index.md>新一代对象存储 RustFS 的 MCP 扩展实践</a></li></ul><p>根据 <a href=https://docs.rustfs.com/zh/installation/linux/>RustFS 官网</a>介绍，RustFS 有三种安装模式：</p><ul><li>单机单盘（SNSD）</li><li>单机多盘（SNMD）</li><li>多机多盘（MNMD）</li></ul><p>其中多机多盘属于集群式安装，也是企业使用最多的模式。多机多盘意味着要在每个服务器上都安装 RustFS 实例，本文探索用 ansible + docker compose 的方式在四台服务器上部署 MNMD 架构。</p><h2 id=前提>前提</h2><ul><li>五台服务器（其中一台用作 ansible 的控制节点，其余四台作为被管理节点，也就是要安装 RustFS 的节点）</li><li>在控制节点上安装好 ansible</li></ul><h2 id=安装流程>安装流程</h2><h3 id=配置-ansible>配置 ansible</h3><p>现在 ansible 控制节点上确保 ansible 安装成功：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>ansible --version
+ansible [core 2.18.10]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = [&#39;/root/.ansible/plugins/modules&#39;, &#39;/usr/share/ansible/plugins/modules&#39;]
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /root/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.12.3 (main, Aug 14 2025, 17:47:21) [GCC 13.3.0] (/usr/bin/python3)
+  jinja version = 3.1.6
+  libyaml = True
+</code></pre></td></tr></table></div></div><p>在控制节点上生成 ssh key 并 copy 到四台目标服务器：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 生成 ssh key
+ssh-keygen -t rsa -C &#34;your.email.address&#34;
+
+# 拷贝 ssh key 到目标服务器（执行四次）
+ssh-copy-id -i ~/.ssh/id_rsa_rustfs.pub root@your.server.ip
+</code></pre></td></tr></table></div></div><p>在控制节点上配置 <code>/etc/ansible/hosts</code> 文件，将四台服务器配置为 rustfs 群组：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[rustfs]
+8.130.164.70
+8.130.168.227
+39.101.76.181
+8.130.119.35
+</code></pre></td></tr></table></div></div><p>后续 <code>rustfs</code> 群组名称会用在 ansible playbook 中。</p><p>一切配置妥当后，用 <code>ansible rustfs -m ping</code> 命令进行测试：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>8.130.119.35 | SUCCESS =&gt; {
+    &#34;changed&#34;: false,
+    &#34;ping&#34;: &#34;pong&#34;
+}
+8.130.164.70 | SUCCESS =&gt; {
+    &#34;changed&#34;: false,
+    &#34;ping&#34;: &#34;pong&#34;
+}
+39.101.76.181 | SUCCESS =&gt; {
+    &#34;changed&#34;: false,
+    &#34;ping&#34;: &#34;pong&#34;
+}
+8.130.168.227 | SUCCESS =&gt; {
+    &#34;changed&#34;: false,
+    &#34;ping&#34;: &#34;pong&#34;
+}
+</code></pre></td></tr></table></div></div><p>看到上述结果后，可认为 ansible 和服务器配置完成，可进行 RustFS 的安装了。</p><p><strong>NOTE</strong>：执行上述命令需要服务器开启 ICMP 协议。</p><h3 id=编写-ansible-playbook>编写 ansible playbook</h3><p>ansible playbook 的撰写完全围绕 RustFS 的安装进行。RustFS 官方提供 docker compose 安装方式，<code>docker-compose.yml</code> 文件内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>services:
+    rustfs:
+        image: rustfs/rustfs:latest
+        container_name: rustfs
+        hostname: rustfs
+        network_mode: host
+        environment:
+        # Use service names and correct disk indexing (1..4 to match mounted paths)
+        - RUSTFS_VOLUMES=http://rustfs-node{1...4}:9000/data/rustfs{1...4}
+        - RUSTFS_ADDRESS=0.0.0.0:9000
+        - RUSTFS_CONSOLE_ENABLE=true
+        - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+        - RUSTFS_EXTERNAL_ADDRESS=0.0.0.0:9000  # Same as internal since no port mapping
+        - RUSTFS_ACCESS_KEY=rustfsadmin
+        - RUSTFS_SECRET_KEY=rustfsadmin
+        - RUSTFS_CMD=rustfs
+        command: [&#34;sh&#34;, &#34;-c&#34;, &#34;apk update &amp;&amp; apk add curl &amp;&amp; sleep 3 &amp;&amp; rustfs&#34;]
+        healthcheck:
+        test:
+            [
+            &#34;CMD-SHELL&#34;,
+            &#34;curl -f http://localhost:9000/health &amp;&amp; curl -f http://localhost:9001/health || exit 1&#34;
+            ]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+        start_period: 30s
+        ports:
+        - &#34;9000:9000&#34;  # API endpoint
+        - &#34;9001:9001&#34;  # Console
+        volumes:
+        - rustfs-data1:/data/rustfs1
+        - rustfs-data2:/data/rustfs2
+        - rustfs-data3:/data/rustfs3
+        - rustfs-data4:/data/rustfs4
+        extra_hosts:
+        - &#34;rustfs-node1:172.20.92.202&#34;
+        - &#34;rustfs-node2:172.20.92.201&#34;
+        - &#34;rustfs-node3:172.20.92.200&#34;
+        - &#34;rustfs-node4:172.20.92.199&#34;
+    volumes:
+    rustfs-data1:
+    rustfs-data2:
+    rustfs-data3:
+    rustfs-data4:
+</code></pre></td></tr></table></div></div><p>核心原理就是将上述内容写入 <code>docker-compose.yml</code> 文件并拷贝到目标服务器上，然后执行 <code>docker compose up -d</code> 命令。因此，playbook 的整体流程包括：</p><ul><li>安装 docker 环境</li><li>创建存放 <code>docker-compose.yml</code> 文件的目录</li><li>生成 <code>docker-compose.yml</code> 文件</li><li>执行 <code>docker compose up -d</code> 命令安装 rustfs 集群</li><li>确认安装结果</li><li>（optional）执行卸载命令 <code>docker compose down</code></li></ul><p>下面看使用到的 ansible 模块及具体实践。</p><h4 id=安装-docker-环境>安装 docker 环境</h4><p>本次实践所用的服务器是 Ubuntu OS，可以直接使用 shell 模块来安装 docker 环境：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: Install docker
+    shell: |
+        apt-get remove -y docker docker.io containerd runc || true
+        apt-get update -y
+        apt-get install -y ca-certificates curl gnupg lsb-release
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+        echo \
+            &#34;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu \
+            $(lsb_release -cs) stable&#34; | tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+        apt-get update -y
+        apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    become: yes
+    register: docker_installation_result
+    changed_when: false
+
+- name: Installation check
+    debug:
+    var: docker_installation_result.stdout
+</code></pre></td></tr></table></div></div><p><strong>NOTE</strong>：使用了 ansible 的 register 和 debug 对安装结果进行输出检查。</p><h4 id=创建目录>创建目录</h4><p>创建一个目录用来存放后面生成的 <code>docker-compose.yml</code> 文件，直接使用 ansible 的 <code>file</code> 的模块指定路径即可：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: Create docker compose dir
+    file:
+    path: &#34;{{ docker_compose }}&#34;
+    state: directory
+    mode: &#39;0755&#39;
+</code></pre></td></tr></table></div></div><p><strong>NOTE</strong>：{{ docker_compose }} 是 ansible 中的变量引用，该变量定义在 playbook 的顶部：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>---
+- name: Prepare for RustFS installation
+hosts: rustfs
+become: yes
+vars:
+    ansible_python_interpreter: /usr/bin/python3
+    install_script_url: &#34;https://rustfs.com/install_rustfs.sh&#34;
+    docker_compose: &#34;/home/xiaomage/rustfs/docker-compose&#34;
+</code></pre></td></tr></table></div></div><h4 id=生成-docker-composeyml-文件>生成 <code>docker-compose.yml</code> 文件</h4><p>使用 ansible 的 <code>copy</code> 模块生成 <code>docker-compose.yml</code> 文件并拷贝至目标服务器的指定目录下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: Prepare docker compose file
+    copy:
+    content: |
+        services:
+        rustfs:
+            image: rustfs/rustfs:latest
+            container_name: rustfs
+            hostname: rustfs
+            network_mode: host
+            environment:
+            # Use service names and correct disk indexing (1..4 to match mounted paths)
+            - RUSTFS_VOLUMES=http://rustfs-node{1...4}:9000/data/rustfs{1...4}
+            - RUSTFS_ADDRESS=0.0.0.0:9000
+            - RUSTFS_CONSOLE_ENABLE=true
+            - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+            - RUSTFS_EXTERNAL_ADDRESS=0.0.0.0:9000  # Same as internal since no port mapping
+            - RUSTFS_ACCESS_KEY=rustfsadmin
+            - RUSTFS_SECRET_KEY=rustfsadmin
+            - RUSTFS_CMD=rustfs
+            command: [&#34;sh&#34;, &#34;-c&#34;, &#34;apk update &amp;&amp; apk add curl &amp;&amp; sleep 3 &amp;&amp; rustfs&#34;]
+            healthcheck:
+            test:
+                [
+                &#34;CMD-SHELL&#34;,
+                &#34;curl -f http://localhost:9000/health &amp;&amp; curl -f http://localhost:9001/health || exit 1&#34;
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+            ports:
+            - &#34;9000:9000&#34;  # API endpoint
+            - &#34;9001:9001&#34;  # Console
+            volumes:
+            - rustfs-data1:/data/rustfs1
+            - rustfs-data2:/data/rustfs2
+            - rustfs-data3:/data/rustfs3
+            - rustfs-data4:/data/rustfs4
+            extra_hosts:
+            - &#34;rustfs-node1:172.20.92.202&#34;
+            - &#34;rustfs-node2:172.20.92.201&#34;
+            - &#34;rustfs-node3:172.20.92.200&#34;
+            - &#34;rustfs-node4:172.20.92.199&#34;
+        volumes:
+        rustfs-data1:
+        rustfs-data2:
+        rustfs-data3:
+        rustfs-data4:
+    dest: &#34;{{ docker_compose }}/docker-compose.yml&#34;
+    mode: &#39;0644&#39;
+</code></pre></td></tr></table></div></div><p><code>dest</code> 参数指定了 <code>docker-compose.yml</code> 文件存放的路径。</p><p><strong>NOTE</strong>：由于是多机多盘（MNMD）安装模式，因此 RUSTFS <code>RUSTFS_VOLUME</code> 环境变量的值为 <code>http://rustfs-node{1...4}:9000/data/rustfs{1...4}</code>，因此需要将 <code>rustfs-node{1...4}</code> 和服务器的 IP 地址映射起来，这部分需要修改容器的 <code>/etc/hosts</code> 文件，在 docker compose 环境下直接使用 <code>extra_hosts</code> 即可。<strong>需要注意的是，这部分一定要用服务器的内网地址</strong>。</p><h4 id=执行安装>执行安装</h4><p>执行 <code>docker compose -f docker-compose.yml up -d</code> 命令即可安装，直接使用 <code>command</code> 模块：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: Install rustfs using docker compose
+    tags: rustfs_install
+    command: docker compose -f &#34;{{ docker_compose}}/docker-compose.yml&#34; up -d
+    args:
+    chdir: &#34;{{ docker_compose }}&#34;
+
+- name: Get docker compose output
+    command: docker compose ps
+    args:
+    chdir: &#34;{{ docker_compose }}&#34;
+    register: docker_compose_output
+
+- name: Check the docker compose installation output
+    debug:
+    msg: &#34;{{ docker_compose_output.stdout }}&#34;
+</code></pre></td></tr></table></div></div><h4 id=可选卸载-rustfs>（可选）卸载 RustFS</h4><p>执行 <code>docker compose -f docker-compose.yml down</code> 命令卸载安装好的集群：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- name: Uninstall rustfs using docker compose
+    tags: rustfs_uninstall
+    command: docker compose -f &#34;{{ docker_compose}}/docker-compose.yml&#34; down
+    args:
+    chdir: &#34;{{ docker_compose }}&#34;
+</code></pre></td></tr></table></div></div><h3 id=开始安装>开始安装</h3><p>将上述内容存放到一个 YAML 文件中，存放在 ansible 控制节点的目录下，比如名为 <code>install.yml</code>，执行如下命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>ansible-playbook --skip-tags rustfs_uninstall install.yml
+</code></pre></td></tr></table></div></div><p>输出结果如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+PLAY [Prepare for RustFS installation] ****************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [8.130.168.227]
+ok: [8.130.119.35]
+ok: [8.130.164.70]
+ok: [39.101.76.181]
+
+TASK [Uninstall rustfs using docker compose] **********************************************************************************************************************************************************************************************
+changed: [39.101.76.181]
+changed: [8.130.164.70]
+changed: [8.130.119.35]
+changed: [8.130.168.227]
+
+PLAY RECAP ********************************************************************************************************************************************************************************************************************************
+39.101.76.181              : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.119.35               : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.164.70               : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.168.227              : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+root@xiaomage-hs:/home/xiaomage/ansible# ansible-playbook --skip-tags rustfs_uninstall docker.yml 
+
+PLAY [Prepare for RustFS installation] ****************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [8.130.119.35]
+ok: [8.130.164.70]
+ok: [39.101.76.181]
+ok: [8.130.168.227]
+
+TASK [Install docker] *********************************************************************************************************************************************************************************************************************
+ok: [8.130.164.70]
+ok: [8.130.119.35]
+ok: [8.130.168.227]
+ok: [39.101.76.181]
+
+TASK [Installation check] *****************************************************************************************************************************************************************************************************************
+......TLDR......
+TASK [Create docker compose dir] **********************************************************************************************************************************************************************************************************
+ok: [8.130.164.70]
+ok: [8.130.168.227]
+ok: [39.101.76.181]
+ok: [8.130.119.35]
+
+TASK [Prepare docker compose file] ********************************************************************************************************************************************************************************************************
+ok: [8.130.168.227]
+ok: [8.130.119.35]
+ok: [8.130.164.70]
+ok: [39.101.76.181]
+
+TASK [Install rustfs using docker compose] ************************************************************************************************************************************************************************************************
+changed: [8.130.164.70]
+changed: [39.101.76.181]
+changed: [8.130.119.35]
+changed: [8.130.168.227]
+
+TASK [Get docker compose output] **********************************************************************************************************************************************************************************************************
+changed: [8.130.164.70]
+changed: [8.130.168.227]
+changed: [8.130.119.35]
+changed: [39.101.76.181]
+
+TASK [Check the docker compose installation output] ***************************************************************************************************************************************************************************************
+ok: [8.130.164.70] =&gt; {
+    &#34;msg&#34;: &#34;NAME      IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                            PORTS\nrustfs    rustfs/rustfs:latest   \&#34;/entrypoint.sh sh -…\&#34;   rustfs    3 seconds ago   Up 2 seconds (health: starting)   &#34;
+}
+ok: [8.130.168.227] =&gt; {
+    &#34;msg&#34;: &#34;NAME      IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                           PORTS\nrustfs    rustfs/rustfs:latest   \&#34;/entrypoint.sh sh -…\&#34;   rustfs    2 seconds ago   Up 1 second (health: starting)   &#34;
+}
+ok: [39.101.76.181] =&gt; {
+    &#34;msg&#34;: &#34;NAME      IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                            PORTS\nrustfs    rustfs/rustfs:latest   \&#34;/entrypoint.sh sh -…\&#34;   rustfs    3 seconds ago   Up 3 seconds (health: starting)   &#34;
+}
+ok: [8.130.119.35] =&gt; {
+    &#34;msg&#34;: &#34;NAME      IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                            PORTS\nrustfs    rustfs/rustfs:latest   \&#34;/entrypoint.sh sh -…\&#34;   rustfs    3 seconds ago   Up 2 seconds (health: starting)   &#34;
+}
+
+PLAY RECAP ********************************************************************************************************************************************************************************************************************************
+39.101.76.181              : ok=8    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.119.35               : ok=8    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.164.70               : ok=8    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+8.130.168.227              : ok=8    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+</code></pre></td></tr></table></div></div><p>在目标服务器上可以查看安装结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker compose ps
+NAME      IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                     PORTS
+rustfs    rustfs/rustfs:latest   &#34;/entrypoint.sh sh -…&#34;   rustfs    2 minutes ago   Up 2 minutes (healthy)   
+</code></pre></td></tr></table></div></div><p>使用任意 RustFS 节点的 ip + 9000 端口，并用默认用户名密码 <code>rustfsadmin</code> 访问实例，在 <strong>性能</strong> 一栏中看到所有节点的信息：</p><p><img src=./images/rustfs-docker-compose-mnmd.png alt="rustfs docker compoes mnmd"></p><p>可以看到有四个节点在线，每个节点 4 个 disk。接下来就可以使用该集群了。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-10-19</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/ai/>AI</a>
+<a href=/tags/ansible/>ansible</a>
+<a href=/tags/rust/>Rust</a>
+<a href=/tags/docker/>docker</a></div><nav class=post-nav><a class=next href=/cloud-native/iac-rustfs/><span class="next-text nav-default">用 Terraform 操作 RustFS 资源，让对象存储 IaC 化</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
