@@ -294,6 +294,8 @@ vars:
     msg: "{{ docker_compose_output.stdout }}"
 ```
 
+**NOTE**：由于将 RustFS 的安装和卸载写在了同一个 playbook 中，因此使用了 ansible 的 `tags` 属性来标记不同的 task。其中用 `rustfs_install` 标记 RustFS 安装，`rustfs_uninstall` 标记卸载。因此，执行的时候使用 `tags` 来指定执行的 task，使用 `--skip-tags` 来指定跳过特定的 task。
+
 #### （可选）卸载 RustFS
 
 执行 `docker compose -f docker-compose.yml down` 命令卸载安装好的集群：
