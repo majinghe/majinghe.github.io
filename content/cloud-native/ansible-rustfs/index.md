@@ -417,7 +417,7 @@ rustfs    rustfs/rustfs:latest   "/entrypoint.sh sh -…"   rustfs    2 minutes 
 
 可以看到有四个节点在线，每个节点 4 个 disk。接下来就可以使用该集群了。
 
-### 卸载 RustFS
+## 卸载 RustFS
 
 由于将 RustFS 的安装和卸载写到了同一个 playbook 中，并且使用了 `tags` 来标记。执行如下命令即可完成 RustFS 集群的卸载：
 
