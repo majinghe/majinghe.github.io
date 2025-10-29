@@ -1,5 +1,5 @@
 ---
-title: "在 k3s 上部署新一代高性能分布式存储 RustFS"
+title: "K3s x RustFS，边缘场景下的云原生存储解决之道"
 description: "在 k3s 上部署 RustFS 的详细教程"
 author: 马景贺（小马哥）
 categories: ["Cloud-Native"]
@@ -10,7 +10,7 @@ type: "post"
 
 ## 关于 RustFS
 
-在[新一代对象存储 RustFS 的 MCP 扩展实践](../rustfs/index.md)中，介绍了 RustFS，它是一个用 Rust 编写的开源分布式存储系统，完全兼容 S3。支持多种安装方式：源码编译、二进制、Docker 以及 Helm Chart。本文分享 RustFS 在 k3s 上的安装。
+RustFS 是一个用 Rust 编写的开源分布式对象存储系统，完全兼容 S3，可作为 minio 的平替。支持多种安装方式：源码编译、二进制、Docker 以及 Helm Chart。K3s 和 RustFS 相结合，能够作为边缘场景的云原生存储解决方案。
 
 ## k3s 的安装
 
@@ -58,10 +58,10 @@ vm-0-12-ubuntu   Ready    control-plane,master   135m   v1.33.4+k3s1
 
 ## 安装 RustFS
 
-使用 [RustFS Helm Chart](https://github.com/majinghe/rustfs-helm)来在 k3s 上进行安装。克隆此仓库到本地：
+使用 [RustFS Helm Chart](https://github.com/rustfs/rustfs/tree/main/helm)来在 K3s 上进行安装。克隆此仓库到本地：
 
 ```
-$ git clone git@github.com:majinghe/rustfs-helm.git
+$ git clone git@github.com:rustfs/rustfs.git
 ```
 
 整个目录结构如下：
@@ -86,9 +86,17 @@ $ git clone git@github.com:majinghe/rustfs-helm.git
 └── values.yaml
 ```
 
-可以根据自身需要对 `values.yaml` 中的参数进行修改，比如 CPU、Memory 的请求限制、PVC 的大小、StorageClass 的名称、Ingress 信息等。
+当前 RustFS helm chart 是多机多盘（MNMD）模式，支持 4 个 pod，每个 pod 4 个 volume 以及 16 个 pod，每个 pod 一个 volume 的安装方式。默认为 4 个 pod 模式（也是推荐模式）。
 
-由于在 k3s 上是通过 PVC 来当作 RustFS 实例所用到的 VOLUME，所以使用了 Rancher 自研的 [local-path-provisioner](https://github.com/rancher/local-path-provisioner)来将本地磁盘转换为 StorageClass，直接执行如下命令即可：
+根据自身需要对 `values.yaml` 中的参数进行修改，比如 CPU、Memory 的请求限制、PVC 的大小、StorageClass 的名称、Ingress 信息等。
+
+由于在 K3s 上是通过 PVC 来当作 RustFS 实例所用到的 VOLUME，所以使用了 Rancher 自研的 [local-path-provisioner](https://github.com/rancher/local-path-provisioner)来将本地磁盘转换为 StorageClass，执行官方推荐的安装命令安装即可：
+
+```
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.32/deploy/local-path-storage.yaml
+```
+
+然后查看 storageclass：
 
 ```
 kubectl  get sc
@@ -104,10 +112,25 @@ storageclass:
   size: 256Mi
 ```
 
-接着执行如下命令：
+然后执行 `helm install` 进行安装即可。
+
+对于 traefki ingressclass，执行如下命令：
 
 ```
-$ helm install rustfs -n rustfs --create-namespace ./ 
+helm install rustfs -n rustfs --create-namespace ./ --set ingress.className="traefik"
+```
+
+> K3s 默认安装了 traefik，因此 traefik 默认为 ingressclass。
+
+对于 nginx ingressclass，执行如下命令：
+
+```
+helm install rustfs -n rustfs --create-namespace ./ --set ingress.className="nginx"
+```
+
+返回如下：
+
+```
 NAME: rustfs
 LAST DEPLOYED: Tue Sep 16 07:20:59 2025
 NAMESPACE: rustfs
@@ -118,7 +141,7 @@ NOTES:
   http://your.rustfs.com/
 ```
 
-可以查看 pod，pvc，ingres，svc 等资源：
+查看 pod，pvc，ingres，svc 等资源：
 
 ```
 kubectl -n rustfs get pods,pvc,ingress,svc
