@@ -1,0 +1,202 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Minio 开源“官宣停摆”，这个日均 1000 star 的项目或成新贵 - 小马哥的博客</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="马景贺（小马哥）"><meta name=description content="Minio 开源项目正式进入维护模式，全面转向商业项目，RustFS 可作为平替。"><meta name=keywords content="Hugo,theme,even"><meta name=generator content="Hugo 0.79.1 with theme even"><link rel=canonical href=https://majinghe.github.io/cloud-native/minio/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Minio 开源“官宣停摆”，这个日均 1000 star 的项目或成新贵"><meta property="og:description" content="Minio 开源项目正式进入维护模式，全面转向商业项目，RustFS 可作为平替。"><meta property="og:type" content="article"><meta property="og:url" content="https://majinghe.github.io/cloud-native/minio/"><meta property="article:published_time" content="2025-12-06T13:05:42+08:00"><meta property="article:modified_time" content="2025-12-06T13:05:42+08:00"><meta itemprop=name content="Minio 开源“官宣停摆”，这个日均 1000 star 的项目或成新贵"><meta itemprop=description content="Minio 开源项目正式进入维护模式，全面转向商业项目，RustFS 可作为平替。"><meta itemprop=datePublished content="2025-12-06T13:05:42+08:00"><meta itemprop=dateModified content="2025-12-06T13:05:42+08:00"><meta itemprop=wordCount content="1992"><meta itemprop=keywords content="Cloud Native,Minio,RustFS,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Minio 开源“官宣停摆”，这个日均 1000 star 的项目或成新贵"><meta name=twitter:description content="Minio 开源项目正式进入维护模式，全面转向商业项目，RustFS 可作为平替。"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>小马哥</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/cloud-native><li class=mobile-menu-item>Cloud Native</li></a><a href=/devsecops><li class=mobile-menu-item>DevSecOps</li></a><a href=/aigc><li class=mobile-menu-item>AIGC</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><head><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><div class=logo-wrapper><a href=/ class=logo>小马哥</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/cloud-native>Cloud Native</a></li><li class=menu-item><a class=menu-item-link href=/devsecops>DevSecOps</a></li><li class=menu-item><a class=menu-item-link href=/aigc>AIGC</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Minio 开源“官宣停摆”，这个日均 1000 star 的项目或成新贵</h1><div class=post-meta><span class=post-time>2025-12-06</span><div class=post-category><a href=/categories/cloud-native/>Cloud-Native</a></div><span class=more-meta>约 1992 字</span>
+<span class=more-meta>预计阅读 4 分钟</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>文章目录</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><ul><li><a href=#辱骂无国界>辱骂无国界</a></li><li><a href=#逝者已矣生者如斯>逝者已矣，生者如斯</a></li><li><a href=#分布式存储新贵--rustfs>分布式存储新贵 —— RustFS</a></li><li><a href=#rustfs-之初体验>RustFS 之初体验</a><ul><li><a href=#集成实践>集成实践</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>最近（准确说是 12 月 3 日），分布式对象存储领域的顶级玩家 Minio，官宣其开源项目 Minio 正式进入维护模式，具体包括：</p><ul><li><a href=https://github.com/minio/minio>代码库</a>处于仅维护状态；</li><li>不再接受新功能、增强改进以及 PR 等；</li><li>严重的安全漏洞会视情况而定（case by case）；</li><li>既有的 Issue 和 PR 将不再积极处理（目前有 42 处于 open 状态的 Issue，33 个处于 open 状态的 PR）；</li><li>对于社区支持，将通过 Slack 尽力而为；</li></ul><p><img src=./images/minio-maintenance-mode.png alt="minio maintenance mode"></p><p>此举意味着 Minio 将全面转向其商业版产品 <a href=https://www.min.io/product/aistor>Minio AIStor</a>。对于 Minio 这种已经发展了 10 年（2014 年公司成立，2015 年发布首个版本）的基础设施开源项目，已经在全球积累了百万甚至千万用户，此变更也在圈里激起大浪。</p><h2 id=辱骂无国界>辱骂无国界</h2><p>事件发生后，就有用户在 Minio 的 GitHub Repo 下面建了一个主题为 <strong>Maintenance Mode</strong> 的 Issue，诸多用户在下面进行了讨论（甚至可以说是“发泄”）”：</p><p><img src=./images/maintenance-mode-issue.png alt="maintenance mode issue"></p><p>有用户提出，这种做法难道不是违反了 AGPL 协议么？当然，也有用户给他解释了一番：<strong>AGPL 不适用于提交者/维护者，只适用于使用者</strong>：</p><p><img src=./images/agpl-response.png alt="agpl response"></p><p>有“愤怒”用户说，这是“诱骗”（估计意思是先让大家用上开源项目，然后闭源再来收费，<strong>这味道有没有很熟悉</strong>），而且点赞者还不少：</p><p><img src=./images/bait-and-switch.png alt="bait and switch"></p><p>更有甚者，直接开始“辱骂”（称之为叛徒）：</p><p><img src=./images/betrayal.png alt=betrayal></p><p>到了最后，Minio 官方下场锁定了这个 Issue，提出这种 Issue 的讨论已经违反了<a href=https://github.com/minio/minio/blob/master/code_of_conduct.md>Code of Conduct</a>，辱骂、威胁这一类的行为在 Minio 社区是不允许的。对于想要继续讨论 fork Minio 或者想继续维护甚至重写的用户，可以到 Discussion 继续讨论：</p><p><img src=./images/lock-issue.png alt="lock issue"></p><p><strong>只能说，在贡献开源项目这件事情上，开发者无国界，在 Diss 开源项目这件事情上，开发者同样无国界</strong>。</p><h2 id=逝者已矣生者如斯>逝者已矣，生者如斯</h2><p>中国有句古话叫做“逝者已矣，生者如斯”，Minio 开源项目已经”官宣停摆“，任何没有结果的讨论甚至辱骂都是没有任何意义的，对于依赖对象存储的用户来讲，出路无非以下几种：</p><ul><li>寻找替代品并迁移</li><li>fork 过来继续维护</li><li>自己撸一个（借助于现在流行的 AI Coding，貌似也不是不可能）</li></ul><p>对于绝大多数用户来讲，估计只能选择第一条了。在替代品方面，也有不少选择，比如 S3、Ceph、RustFS、Garage 等。</p><p>最近，正好看到一个关于私有化部署、S3 兼容的对象存储项目的测评（<a href=https://www.repoflow.io/blog/benchmarking-self-hosted-s3-compatible-storage-a-practical-performance-comparison>Benchmarking Self-Hosted S3-Compatible Storage</a>。</p><p>参与评测的项目有：</p><ul><li>MinIO</li><li>Ceph</li><li>SeaweedFS</li><li>Garage</li><li>Zenko (Scality Cloudserver)</li><li>LocalStack</li><li>RustFS</li></ul><p>测评方法为：</p><ol><li>上传/下载 7 个不同尺寸的文件：50 KB、200 KB、1 MB、10 MB、50 MB、100MB 以及 1GB；</li><li>重复上传/下载 20 次，然后获取稳定的平均数据；</li><li>所有测试均在相同的机器上进行，测试机器为每一种存储系统使用默认的 Docker 容器，且没有额外的卷、挂载或缓存；</li></ol><p>测评结果：<strong>在并行/非并行上传/下载速率方面，RustFS 和 Seaweedfs 都领先于其他项目</strong>。</p><p>由于在开篇提到的 Issue 中，多个用户也提到了可行的替代品 —— RustFS：</p><p><img src=./images/rustfs-alternative.png alt="rustfs alternative"></p><p>下面来看一下 RustFS 的相关情况。</p><h2 id=分布式存储新贵--rustfs>分布式存储新贵 —— RustFS</h2><p>从 GitHub 上看<a href=https://github.com/rustfs/rustfs>rustfs</a>是一个用 Rust 语言编写的分布式对象存储系统，兼容 S3 协议，是 Minio 的平替。自今年 7 月份开源（采用 Apache 2.0 协议）以来，已经获得 <strong>15K</strong> star（在基础设施类开源项目中还是挺不错的数据），更新比较频繁，目前发布了 73 个版本。从官方发布的内容看，RustFS 的优势在于：</p><ul><li><strong>开源</strong>：采用商业友好的 Apache 2.0 协议；</li><li><strong>S3 兼容</strong>：无缝集成现有的 S3 兼容的应用或工具；</li><li><strong>分布式架构</strong>：可扩展和容错设计适用于大规模部署；</li><li><strong>安装便捷</strong>：支持二进制、Docker 以及 Helm Chart，可一键式安装；</li></ul><p>官方也给出了和其他对象存储的对比：</p><p><img src=./images/rustfs-vs-others.png alt="rustfs vs others"></p><blockquote><p>更多内容可自行查看 GitHub Repo 或<a href=https://rustfs.com>官网</a>。</p></blockquote><h2 id=rustfs-之初体验>RustFS 之初体验</h2><p>RustFS 支持多种安装方式：</p><ul><li>二进制安装</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>curl -O https://rustfs.com/install_rustfs.sh &amp;&amp; bash install_rustfs.sh
+</code></pre></td></tr></table></div></div><ul><li>Docker 安装</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker pull rustfs/rustfs:latest
+docker run -d \
+  --name rustfs \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  -v /data:/data \
+  rustfs/rustfs:latest
+</code></pre></td></tr></table></div></div><blockquote><p>注意：RustFS 容器以 <code>10001</code> 运行，需要将挂载的宿主机目录的权限修改为 <code>10001</code>，否则会出现 <code>permission denied</code> 错误。</p></blockquote><p>或使用 <code>docker-compose.yaml</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    hostname: rustfs
+    environment:
+      - RUSTFS_VOLUMES=/data/rustfs{1...4}
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_EXTERNAL_ADDRESS=0.0.0.0:9000  # Same as internal since no port mapping
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
+      - RUSTFS_CMD=rustfs
+    healthcheck:
+      test:
+        [
+          &#34;CMD-SHELL&#34;,
+          &#34;curl -f http://localhost:9000/health &amp;&amp; curl -f http://localhost:9001/health&#34;
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - &#34;9000:9000&#34;  # API endpoint
+      - &#34;9001:9001&#34;  # Console
+    volumes:
+      - rustfs-data1:/data/rustfs1
+      - rustfs-data2:/data/rustfs2
+      - rustfs-data3:/data/rustfs3
+      - rustfs-data4:/data/rustfs4
+
+volumes:
+  rustfs-data1:
+  rustfs-data2:
+  rustfs-data3:
+  rustfs-data4:
+</code></pre></td></tr></table></div></div><p>直接执行如下命令即可</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>docker compose up -d
+
+#查看容器
+docker ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED        STATUS                  PORTS                                                           NAMES
+0a957ec319ca   rustfs/rustfs:latest   &#34;/entrypoint.sh rust…&#34;   14 hours ago   Up 14 hours (healthy)   0.0.0.0:9000-9001-&gt;9000-9001/tcp, :::9000-9001-&gt;9000-9001/tcp   rustfs
+</code></pre></td></tr></table></div></div><ul><li>Helm Chart 安装</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 添加 repo
+helm repo add rustfs https://charts.rustfs.com
+
+# 安装
+helm install rustfs -n rustfs --create-namespace ./ --set ingress.className=&#34;nginx&#34;
+</code></pre></td></tr></table></div></div><p>安装完毕后，可使用 <code>http://ip:9001</code>（Helm Chart 安装可根据 ingress 进行登录）登录，默认用户名和米么均为 <code>rustfsadmin</code>。</p><p><img src=./images/rustfs-login.png alt="rustfs login"></p><p>登录后，可以创建存储、AK & SK 使用：</p><p><img src=./images/rustfs-bucket-creation.png alt="rustfs bucket creation"></p><p>可以通过<strong>性能</strong>来查看节点和磁盘的信息：</p><p><img src=./images/node-and-disk-info.png alt="node and disk info"></p><h3 id=集成实践>集成实践</h3><p>比如可以将 RustFS 配置为 <a href=https://github.com/distribution/distribution>Docker Registry</a> 的存储后端。<code>docker-compose.yaml</code> 内容如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>services:
+  registry:
+    restart: always
+    image: registry:3
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_STORAGE: s3
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+      REGISTRY_STORAGE_S3_ACCESSKEY: rustfsadmin
+      REGISTRY_STORAGE_S3_SECRETKEY: rustfsadmin
+      REGISTRY_STORAGE_S3_REGION: cn-east-1
+      REGISTRY_STORAGE_S3_REGIONENDPOINT: http://rustfs.instance.ip:9000
+      REGISTRY_STORAGE_S3_BUCKET: docker-registry
+      REGISTRY_STORAGE_S3_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_STORAGE_S3_FORCEPATHSTYLE: true
+      REGISTRY_STORAGE_S3_LOGLEVEL: debug
+    volumes:
+      - ./auth:/auth
+      - ./certs:/certs
+    networks:
+      - rustfs-oci
+
+networks:
+  rustfs-oci:
+    driver: bridge
+    name: rustfs-oci
+</code></pre></td></tr></table></div></div><p>拉取镜像并推送到 Docker Registry：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 拉取镜像
+docker pull rustfs/rustfs:1.0.0.-alpha.72
+
+# 重新打 tag
+docker tag rustfs/rustfs:1.0.0-alpha.72 localhost:5000/rustfs/rustfs:1.0.0-alpha.72
+
+# 推送至 Docker Registry
+docker push localhost:5000/rustfs/rustfs:1.0.0-alpha.72
+</code></pre></td></tr></table></div></div><p>在 RustFS 实例上查看：</p><p><img src=./images/rustfs-confirmation.png alt="rustfs confirmation"></p></div><div class=post-copyright><p class=copyright-item><span class=item-title>文章作者</span>
+<span class=item-content>马景贺（小马哥）</span></p><p class=copyright-item><span class=item-title>上次更新</span>
+<span class=item-content>2025-12-06</span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/cloud-native/>Cloud Native</a>
+<a href=/tags/minio/>Minio</a>
+<a href=/tags/rustfs/>RustFS</a></div><nav class=post-nav><a class=next href=/cloud-native/ansible-rustfs/><span class="next-text nav-default">ansible + docker compose, RustFS MNMD 架构的一键部署之道</span>
+<span class="next-text nav-mobile">下一篇</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=devops008@sina.com class="iconfont icon-email" title=email></a><a href=https://github.com/majinghe class="iconfont icon-github" title=github></a><a href=https://majinghe.github.io/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>由 <a class=hexo-link href=https://gohugo.io>Hugo</a> 强力驱动</span>
+<span class=division>|</span>
+<span class=theme-info>主题 -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020 -
+2025<span class=heart><i class="iconfont icon-heart"></i></span><span>olOwOlo</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','G-T0B2C6W2ZH','auto');ga('set','anonymizeIp',true);ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
