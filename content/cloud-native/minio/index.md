@@ -186,7 +186,7 @@ helm repo add rustfs https://charts.rustfs.com
 helm install rustfs -n rustfs --create-namespace ./ --set ingress.className="nginx"
 ```
 
-安装完毕后，可使用 `http://ip:9001`（Helm Chart 安装可根据 ingress 进行登录）登录，默认用户名和米么均为 `rustfsadmin`。
+安装完毕后，可使用 `http://ip:9001`（Helm Chart 安装可根据 ingress 进行登录）登录，默认用户名和密码均为 `rustfsadmin`。
 
 ![rustfs login](./images/rustfs-login.png)
 
@@ -251,3 +251,5 @@ docker push localhost:5000/rustfs/rustfs:1.0.0-alpha.72
 在 RustFS 实例上查看：
 
 ![rustfs confirmation](./images/rustfs-confirmation.png)
+
+官方目前给出了 Golang、Rust、TypeScript 等 SDK 来使用 RustFS。另外通过 mc（minio client）对 RustFS 进行操作。简言之，对 Minio/S3 适用的操作，同样适用于 RustFS。感兴趣的可自行探索。
